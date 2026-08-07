@@ -191,6 +191,10 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
   <div class="card"><h3>各策略总收入 Top12(已付费 vs 未付费)</h3><p class="cap">区间累计 $ · 堆叠 · 数据源:交叉表-纯官网</p><div class="cwrap"><canvas id="c_srev"></canvas></div></div>
   <div class="card"><h3>说明</h3><p class="cap" style="line-height:1.7">维度:日期 × <b>是否付费</b> × <b>策略</b> × <b>注册国家</b>;指标:曝光、充值、金币充值、首订、总收入、付费后播放等。<br>下表可按<b>策略 / 付费状态 / 日期 / 关键词(注册国家)</b>筛选、点表头排序、导出 CSV。数据源为最新下载的「交叉表-纯官网数据看板」。</p></div>
  </div>
+ <h2>各覆盖国家 · 命中策略拆分(曝光uv · Top6 策略)</h2>
+ <p class="sub" style="margin:-6px 0 12px">表1 点名覆盖的 13 国,各自被哪些策略触达(注册国家×策略,曝光uv 越高=命中越多)。</p>
+ <div class="grid2" id="cbys"></div>
+ <h2>全量明细</h2>
  <div class="card">
   <div class="filters">
    <label>策略 <select id="x_strat"></select></label>
@@ -433,6 +437,10 @@ function renderSdetail(){
  mk('c_srev',{type:'bar',data:{labels:D.strat_rev.map(x=>x.s),datasets:[
    {label:'已付费',data:D.strat_rev.map(x=>x.paid),backgroundColor:sc[0],borderRadius:3,barThickness:12,stack:'s'},
    {label:'未付费',data:D.strat_rev.map(x=>x.unpaid),backgroundColor:sc[3],borderRadius:3,barThickness:12,stack:'s'}]},options:o});
+ const cbs=D.strat_by_country||{}, cks=Object.keys(cbs);
+ g('cbys').innerHTML=cks.map((c,i)=>`<div class="card"><div class="mini"><div class="lbl">${c} · 命中 ${cbs[c].length} 策略</div></div><div style="position:relative;height:${Math.max(120,cbs[c].length*28+34)}px"><canvas id="cb${i}"></canvas></div></div>`).join('');
+ cks.forEach((c,i)=>{let bo=base();bo.indexAxis='y';bo.plugins.legend.display=false;bo.scales.x.grid.color=css('--grid');bo.scales.y.grid.color='transparent';bo.scales.y.ticks.autoSkip=false;bo.scales.y.ticks.font={size:10};bo.scales.x.ticks.maxTicksLimit=4;
+   mk('cb'+i,{type:'bar',data:{labels:cbs[c].map(x=>x.sl),datasets:[{data:cbs[c].map(x=>x.exp),backgroundColor:sc[0],borderRadius:3,barThickness:12}]},options:bo});});
  renderStratTable();
 }
 const R={dash:renderDash,country:renderCountry,strategy:renderStrategy,weekly:renderWeekly,sdetail:renderSdetail};
