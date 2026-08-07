@@ -31,7 +31,8 @@ def load_cp(path):
         d=s2d(r[0])
         if not d or not r[1]: continue
         ltv=[num(r[32+k]) if len(r)>32+k else 0 for k in range(31)]
-        out.append({"d":d,"c":r[1],"paid":(r[2]=="已付费用户"),"dau":num(r[4]),"uv":num(r[11]),"sub":num(r[16]),"rev":num(r[22]),"ltv":ltv})
+        out.append({"d":d,"c":r[1],"paid":(r[2]=="已付费用户"),"dau":num(r[4]),"view":num(r[5]),"order":num(r[9]),
+                    "uv":num(r[11]),"payok":num(r[12]),"coin":num(r[14]),"sub":num(r[16]),"rev":num(r[22]),"ltv":ltv})
     return out
 seed_cp=[x for x in load_cp(f"{D}/国家+付费.xlsx") if x["d"]<"2026-07-15"]
 rec_cp=[x for x in load_cp(f"{D}/官网监控明细_recent.xlsx") if re.match(r'2026-\d\d-\d\d',x["d"])]
@@ -44,16 +45,19 @@ for r in ws(f"{D}/官网大盘.xlsx").iter_rows(min_row=3, values_only=True):
     d=s2d(r[0])
     if not d or d>="2026-07-30": continue
     ltv=[num(r[32+k]) if len(r)>32+k else 0 for k in range(31)]
-    site[d]={"dau":num(r[4]),"uv":num(r[11]),"sub":num(r[16]),"rev":num(r[22]),"arppu":num(r[30]),"ltv":ltv}
-agg=defaultdict(lambda:{"dau":0.0,"uv":0.0,"sub":0.0,"rev":0.0,"lw":[0.0]*31})
+    site[d]={"dau":num(r[4]),"view":num(r[5]),"order":num(r[9]),"uv":num(r[11]),"payok":num(r[12]),
+             "coin":num(r[14]),"sub":num(r[16]),"rev":num(r[22]),"arppu":num(r[30]),"ltv":ltv}
+agg=defaultdict(lambda:{"dau":0.0,"view":0.0,"order":0.0,"uv":0.0,"coin":0.0,"sub":0.0,"rev":0.0,"pw":0.0,"lw":[0.0]*31})
 for x in rec_cp:
     if x["d"]<"2026-07-30": continue
-    a=agg[x["d"]]; a["dau"]+=x["dau"]; a["uv"]+=x["uv"]; a["sub"]+=x["sub"]; a["rev"]+=x["rev"]
+    a=agg[x["d"]]
+    for k2 in ("dau","view","order","uv","coin","sub","rev"): a[k2]+=x[k2]
+    a["pw"]+=x["payok"]*x["order"]
     for k in range(31): a["lw"][k]+=x["ltv"][k]*x["dau"]
 for d,a in agg.items():
     w=a["dau"] or 1
-    site[d]={"dau":a["dau"],"uv":a["uv"],"sub":a["sub"],"rev":a["rev"],
-             "arppu":a["rev"]/a["uv"] if a["uv"] else 0,"ltv":[a["lw"][k]/w for k in range(31)]}
+    site[d]={"dau":a["dau"],"view":a["view"],"order":a["order"],"uv":a["uv"],"coin":a["coin"],"sub":a["sub"],"rev":a["rev"],
+             "payok":a["pw"]/a["order"] if a["order"] else 0,"arppu":a["rev"]/a["uv"] if a["uv"] else 0,"ltv":[a["lw"][k]/w for k in range(31)]}
 dates=sorted(site)
 dau=[round(site[d]["dau"]) for d in dates]
 rev=[round(site[d]["rev"],2) for d in dates]
@@ -166,11 +170,15 @@ phase2_ltv={"pts":pts,"unpaid_pre":segagg(seed_cp,False,PRE),"unpaid_post":segag
             "paid_pre":segagg(seed_cp,True,PRE),"paid_post":segagg(rec_cp,True,POST)}
 
 # ---------- site_detail (大盘明细) ----------
-sd_cols=["日期","DAU","充值uv","订阅uv","总收入","付费率%","订阅率%","ARPPU","LTV0","LTV7","LTV14","LTV30"]
-site_detail=[[d,round(site[d]["dau"]),round(site[d]["uv"]),round(site[d]["sub"]),round(site[d]["rev"],2),
-              round(site[d]["uv"]/site[d]["dau"]*100,4) if site[d]["dau"] else 0,
-              round(site[d]["sub"]/site[d]["dau"]*100,4) if site[d]["dau"] else 0, round(site[d]["arppu"],2),
-              round(site[d]["ltv"][0],4),round(site[d]["ltv"][7],4),round(site[d]["ltv"][14],4),round(site[d]["ltv"][30],4)] for d in dates]
+sd_cols=["日期","DAU","观看uv","观看率%","创建订单uv","订单创建率%","充值uv","充值成功率%","充值率%","金币充值uv","金币充值占比%",
+         "订阅uv","订阅uv占比%","订阅率%","总收入","总收入ARPU","总收入ARPPU","LTV0","LTV7","LTV14","LTV30"]
+site_detail=[]
+for d in dates:
+    s=site[d]; da=s["dau"] or 1; uv=s["uv"] or 1
+    site_detail.append([d, round(s["dau"]), round(s["view"]), round(s["view"]/da*100,3), round(s["order"]), round(s["order"]/da*100,4),
+        round(s["uv"]), round(s["payok"]*100,2), round(s["uv"]/da*100,4), round(s["coin"]), round(s["coin"]/uv*100,2),
+        round(s["sub"]), round(s["sub"]/uv*100,2), round(s["sub"]/da*100,4), round(s["rev"],2), round(s["rev"]/da,4), round(s["arppu"],2),
+        round(s["ltv"][0],4), round(s["ltv"][7],4), round(s["ltv"][14],4), round(s["ltv"][30],4)])
 
 strat=json.load(open("strategy.json"))
 # 一期加入韩国、泰国(6.18 上架·注册国家):文档表2只有11国,韩/泰按同结构从种子算(前6.03-6.16/后6.18-7.01)
