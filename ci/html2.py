@@ -79,6 +79,7 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
  <button class="tab" data-t="country">国家</button>
  <button class="tab" data-t="strategy">面板策略</button>
  <button class="tab" data-t="weekly">周报</button>
+ <button class="tab" data-t="sdetail">面板策略明细</button>
 </div>
 
 <section class="panel on" id="p-dash">
@@ -182,6 +183,23 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
  <h2>产运周报 · 官网+社媒(按周查看)</h2>
  <div class="card"><div class="filters"><label>选择周 <select id="wk_sel"></select></label><span class="badge" id="wk_src"></span></div></div>
  <div id="wk_body"></div>
+</section>
+
+<section class="panel" id="p-sdetail">
+ <h2>面板策略明细 · 按策略(交叉表·纯官网)</h2>
+ <div class="grid2" style="margin-bottom:12px">
+  <div class="card"><h3>各策略总收入 Top12</h3><p class="cap">区间累计 $ · 数据源:交叉表-纯官网</p><div class="cwrap"><canvas id="c_srev"></canvas></div></div>
+  <div class="card"><h3>说明</h3><p class="cap" style="line-height:1.7">按「策略/货架」维度的逐日明细:曝光、充值、首订、金币充值、总收入、付费后播放等。<br>下表可按<b>策略 / 日期 / 关键词(货架ID)</b>筛选、点表头排序、导出 CSV。数据源为最新下载的「交叉表-纯官网数据看板」。</p></div>
+ </div>
+ <div class="card">
+  <div class="filters">
+   <label>策略 <select id="x_strat"></select></label>
+   <label>日期 <input type="date" id="x_from"></label><label>~ <input type="date" id="x_to"></label>
+   <input type="text" id="x_kw" placeholder="关键词(货架ID/日期)"/>
+   <button class="fbtn" id="x_reset">重置</button><button class="fbtn" id="x_csv">导出CSV</button><span class="badge" id="x_count"></span>
+  </div>
+  <div style="overflow:auto;max-height:600px;margin-top:10px"><table id="t_xd"></table></div>
+ </div>
 </section>
 
 <footer id="foot"></footer>
@@ -364,7 +382,7 @@ function makeFilterTable(o){
   const t=g(o.ids.table);
   makeSortable(o.ids.table);
   if(!t.dataset.init){
-   if(o.ids.country)g(o.ids.country).innerHTML='<option value="">全部国家</option>'+o.countries.map(c=>`<option>${c}</option>`).join('');
+   if(o.ids.country)g(o.ids.country).innerHTML=`<option value="">${o.selLabel||'全部国家'}</option>`+o.countries.map(c=>`<option>${c}</option>`).join('');
    const mn=o.rows[0][0],mx=o.rows[o.rows.length-1][0];
    g(o.ids.from).value=mn;g(o.ids.to).value=mx;
    [o.ids.from,o.ids.to,o.ids.country,o.ids.paid].filter(Boolean).forEach(id=>g(id).addEventListener('change',apply));
@@ -405,7 +423,16 @@ function renderWeekly(){
  g('wk_src').textContent=WR.source||'';
  drawWeek();
 }
-const R={dash:renderDash,country:renderCountry,strategy:renderStrategy,weekly:renderWeekly};
+const renderStratTable=makeFilterTable({rows:D.strat_detail,cols:D.strat_detail_cols,cIdx:2,pIdx:-1,countries:D.strat_list,selLabel:'全部策略',
+ fmt:(v,i)=>i<3?v:((i===11||i===12||i===13)?usd(v):int(v)),csv:'面板策略明细.csv',
+ ids:{country:'x_strat',from:'x_from',to:'x_to',kw:'x_kw',reset:'x_reset',csv:'x_csv',count:'x_count',table:'t_xd'}});
+function renderSdetail(){
+ const sc=SC(); let o=base(); o.indexAxis='y'; o.plugins.legend.display=false;
+ o.scales.y.grid.color='transparent'; o.scales.y.ticks.autoSkip=false; o.scales.x.grid.color=css('--grid'); o.scales.x.ticks.callback=v=>'$'+(v/1000)+'k';
+ mk('c_srev',{type:'bar',data:{labels:D.strat_rev.map(x=>x.s),datasets:[{data:D.strat_rev.map(x=>x.rev),backgroundColor:sc[0],borderRadius:4,barThickness:12}]},options:o});
+ renderStratTable();
+}
+const R={dash:renderDash,country:renderCountry,strategy:renderStrategy,weekly:renderWeekly,sdetail:renderSdetail};
 function show(t){
  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));

@@ -197,6 +197,19 @@ def p1row(c):
             round(La(0),3), round(Lb(0),3), round(La(7),3), round(Lb(7),3),
             round(La(14),3), round(Lb(14),3), round(La(30),3), round(Lb(30),3), chg(La(30),Lb(30))]
 panel1=strat["panel1"]+[p1row("韩国"), p1row("泰国")]
+# ---------- 面板策略明细(交叉表:日期×货架ID×策略) ----------
+sd_rows=[]; srev=defaultdict(float); sset=set()
+for r in ws(f"{D}/策略交叉表.xlsx").iter_rows(min_row=2, values_only=True):
+    d=s2d(r[0])
+    if not d or not re.match(r'2026-\d\d-\d\d',str(r[0])[:10]) or not r[2]: continue
+    sd_rows.append([d, r[1], r[2], round(num(r[4])), round(num(r[5])), round(num(r[6])), round(num(r[7])),
+        round(num(r[8])), round(num(r[9])), round(num(r[10])), round(num(r[11])), round(num(r[12]),2),
+        round(num(r[13]),2), round(num(r[14]),2), round(num(r[15]))])
+    srev[r[2]]+=num(r[12]); sset.add(r[2])
+sd_rows.sort(key=lambda x:(x[0],x[2]))
+strat_detail_cols=["日期","货架ID","策略","曝光pv","曝光uv","充值pv","充值uv","金币充值pv","金币充值uv","首订pv","首订uv","总收入","金币充值收入","首订收入","付费后播放uv"]
+strat_list=sorted(sset)
+strat_rev=sorted([{"s":k,"rev":round(v,2)} for k,v in srev.items()], key=lambda x:-x["rev"])[:12]
 P={"gen":dates[-1],"dates":dates,"dau":dau,"rev":rev,"payrate":payrate,"subrate":subrate,"arppu":arppu,
    "chargeuv":chargeuv,"subuv":subuv,"ltv":ltv,"ltv_date":ltv_date,
    "kpi":{"dau":kpi(dau),"payrate":kpi(payrate),"arppu":kpi(arppu),"rev":kpi(rev),"ltv30":ltv[30],"rev30":rev30},
@@ -206,7 +219,8 @@ P={"gen":dates[-1],"dates":dates,"dau":dau,"rev":rev,"payrate":payrate,"subrate"
    "phase2_unpaid":phase2_unpaid,"phase2_paid":phase2_paid,"strategy":strat["strategy"],"strategy_header":strat["strategy_header"],
    "country_ltv":country_ltv,"country_ltv_table":country_ltv_table,"phase2_ltv":phase2_ltv,
    "detail":detail,"detail_cols":detail_cols,"detail_countries":countries,
-   "site_detail_cols":sd_cols,"site_detail":site_detail}
+   "site_detail_cols":sd_cols,"site_detail":site_detail,
+   "strat_detail":sd_rows,"strat_detail_cols":strat_detail_cols,"strat_list":strat_list,"strat_rev":strat_rev}
 json.dump(P,open("payload2.json","w"),ensure_ascii=False)
 print("built: site",dates[0],"->",dates[-1],"(",len(dates),"d) | latest DAU",dau[-1],"| 7月rev",round(sum(v for dd,v in zip(dates,rev) if dd[:7]=='2026-07')),
       "| curmonth",cur_month,"MTD",round(mtd),"| ctab",len(ctab),"| detail",len(detail),"| 国家数",len(countries))
