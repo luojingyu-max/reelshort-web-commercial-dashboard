@@ -198,18 +198,19 @@ def p1row(c):
             round(La(14),3), round(Lb(14),3), round(La(30),3), round(Lb(30),3), chg(La(30),Lb(30))]
 panel1=strat["panel1"]+[p1row("韩国"), p1row("泰国")]
 # ---------- 面板策略明细(交叉表:日期×货架ID×策略) ----------
-sd_rows=[]; srev=defaultdict(float); sset=set()
+sd_rows=[]; srev=defaultdict(lambda:{"p":0.0,"u":0.0}); sset=set()
 for r in ws(f"{D}/策略交叉表.xlsx").iter_rows(min_row=2, values_only=True):
     d=s2d(r[0])
     if not d or not re.match(r'2026-\d\d-\d\d',str(r[0])[:10]) or not r[2]: continue
-    sd_rows.append([d, r[1], r[2], round(num(r[4])), round(num(r[5])), round(num(r[6])), round(num(r[7])),
+    pd="已付费" if r[1]=="已付费用户" else "未付费"
+    sd_rows.append([d, pd, r[2], r[3], round(num(r[4])), round(num(r[5])), round(num(r[6])), round(num(r[7])),
         round(num(r[8])), round(num(r[9])), round(num(r[10])), round(num(r[11])), round(num(r[12]),2),
         round(num(r[13]),2), round(num(r[14]),2), round(num(r[15]))])
-    srev[r[2]]+=num(r[12]); sset.add(r[2])
-sd_rows.sort(key=lambda x:(x[0],x[2]))
-strat_detail_cols=["日期","货架ID","策略","曝光pv","曝光uv","充值pv","充值uv","金币充值pv","金币充值uv","首订pv","首订uv","总收入","金币充值收入","首订收入","付费后播放uv"]
+    srev[r[2]]["p" if pd=="已付费" else "u"]+=num(r[12]); sset.add(r[2])
+sd_rows.sort(key=lambda x:(x[0],x[2],x[1],x[3]))
+strat_detail_cols=["日期","付费状态","策略","注册国家","曝光pv","曝光uv","充值pv","充值uv","金币充值pv","金币充值uv","首订pv","首订uv","总收入","金币充值收入","首订收入","付费后播放uv"]
 strat_list=sorted(sset)
-strat_rev=sorted([{"s":k,"rev":round(v,2)} for k,v in srev.items()], key=lambda x:-x["rev"])[:12]
+strat_rev=sorted([{"s":k,"paid":round(v["p"],2),"unpaid":round(v["u"],2),"total":v["p"]+v["u"]} for k,v in srev.items()], key=lambda x:-x["total"])[:12]
 P={"gen":dates[-1],"dates":dates,"dau":dau,"rev":rev,"payrate":payrate,"subrate":subrate,"arppu":arppu,
    "chargeuv":chargeuv,"subuv":subuv,"ltv":ltv,"ltv_date":ltv_date,
    "kpi":{"dau":kpi(dau),"payrate":kpi(payrate),"arppu":kpi(arppu),"rev":kpi(rev),"ltv30":ltv[30],"rev30":rev30},

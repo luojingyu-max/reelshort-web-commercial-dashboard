@@ -188,14 +188,15 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
 <section class="panel" id="p-sdetail">
  <h2>面板策略明细 · 按策略(交叉表·纯官网)</h2>
  <div class="grid2" style="margin-bottom:12px">
-  <div class="card"><h3>各策略总收入 Top12</h3><p class="cap">区间累计 $ · 数据源:交叉表-纯官网</p><div class="cwrap"><canvas id="c_srev"></canvas></div></div>
-  <div class="card"><h3>说明</h3><p class="cap" style="line-height:1.7">按「策略/货架」维度的逐日明细:曝光、充值、首订、金币充值、总收入、付费后播放等。<br>下表可按<b>策略 / 日期 / 关键词(货架ID)</b>筛选、点表头排序、导出 CSV。数据源为最新下载的「交叉表-纯官网数据看板」。</p></div>
+  <div class="card"><h3>各策略总收入 Top12(已付费 vs 未付费)</h3><p class="cap">区间累计 $ · 堆叠 · 数据源:交叉表-纯官网</p><div class="cwrap"><canvas id="c_srev"></canvas></div></div>
+  <div class="card"><h3>说明</h3><p class="cap" style="line-height:1.7">维度:日期 × <b>是否付费</b> × <b>策略</b> × <b>注册国家</b>;指标:曝光、充值、金币充值、首订、总收入、付费后播放等。<br>下表可按<b>策略 / 付费状态 / 日期 / 关键词(注册国家)</b>筛选、点表头排序、导出 CSV。数据源为最新下载的「交叉表-纯官网数据看板」。</p></div>
  </div>
  <div class="card">
   <div class="filters">
    <label>策略 <select id="x_strat"></select></label>
+   <label>付费状态 <select id="x_paid"><option value="">全部</option><option>已付费</option><option>未付费</option></select></label>
    <label>日期 <input type="date" id="x_from"></label><label>~ <input type="date" id="x_to"></label>
-   <input type="text" id="x_kw" placeholder="关键词(货架ID/日期)"/>
+   <input type="text" id="x_kw" placeholder="关键词(注册国家)"/>
    <button class="fbtn" id="x_reset">重置</button><button class="fbtn" id="x_csv">导出CSV</button><span class="badge" id="x_count"></span>
   </div>
   <div style="overflow:auto;max-height:600px;margin-top:10px"><table id="t_xd"></table></div>
@@ -373,7 +374,7 @@ function makeFilterTable(o){
  function apply(){
   const c=o.ids.country?g(o.ids.country).value:'',p=o.ids.paid?g(o.ids.paid).value:'';
   const fr=g(o.ids.from).value,to=g(o.ids.to).value,kw=(g(o.ids.kw).value||'').trim();
-  filt=o.rows.filter(r=>(!c||r[o.cIdx]===c)&&(!p||r[o.pIdx]===p)&&(!fr||r[0]>=fr)&&(!to||r[0]<=to)&&(!kw||r.slice(0,2).join(' ').indexOf(kw)>=0));
+  filt=o.rows.filter(r=>(!c||r[o.cIdx]===c)&&(!p||r[o.pIdx]===p)&&(!fr||r[0]>=fr)&&(!to||r[0]<=to)&&(!kw||(o.kwCols||[0,1]).map(i=>r[i]).join(' ').indexOf(kw)>=0));
   g(o.ids.table).querySelector('tbody').innerHTML=filt.map(r=>'<tr>'+r.map((v,i)=>`<td>${o.fmt(v,i)}</td>`).join('')+'</tr>').join('');
   g(o.ids.count).textContent=filt.length+' / '+o.rows.length+' 行';
  }
@@ -423,13 +424,15 @@ function renderWeekly(){
  g('wk_src').textContent=WR.source||'';
  drawWeek();
 }
-const renderStratTable=makeFilterTable({rows:D.strat_detail,cols:D.strat_detail_cols,cIdx:2,pIdx:-1,countries:D.strat_list,selLabel:'全部策略',
- fmt:(v,i)=>i<3?v:((i===11||i===12||i===13)?usd(v):int(v)),csv:'面板策略明细.csv',
- ids:{country:'x_strat',from:'x_from',to:'x_to',kw:'x_kw',reset:'x_reset',csv:'x_csv',count:'x_count',table:'t_xd'}});
+const renderStratTable=makeFilterTable({rows:D.strat_detail,cols:D.strat_detail_cols,cIdx:2,pIdx:1,countries:D.strat_list,selLabel:'全部策略',kwCols:[0,3],
+ fmt:(v,i)=>i<4?v:((i===12||i===13||i===14)?usd(v):int(v)),csv:'面板策略明细.csv',
+ ids:{country:'x_strat',paid:'x_paid',from:'x_from',to:'x_to',kw:'x_kw',reset:'x_reset',csv:'x_csv',count:'x_count',table:'t_xd'}});
 function renderSdetail(){
- const sc=SC(); let o=base(); o.indexAxis='y'; o.plugins.legend.display=false;
- o.scales.y.grid.color='transparent'; o.scales.y.ticks.autoSkip=false; o.scales.x.grid.color=css('--grid'); o.scales.x.ticks.callback=v=>'$'+(v/1000)+'k';
- mk('c_srev',{type:'bar',data:{labels:D.strat_rev.map(x=>x.s),datasets:[{data:D.strat_rev.map(x=>x.rev),backgroundColor:sc[0],borderRadius:4,barThickness:12}]},options:o});
+ const sc=SC(); let o=base(); o.indexAxis='y';
+ o.scales.y.grid.color='transparent'; o.scales.y.ticks.autoSkip=false; o.scales.x.stacked=true; o.scales.y.stacked=true; o.scales.x.grid.color=css('--grid'); o.scales.x.ticks.callback=v=>'$'+(v/1000)+'k';
+ mk('c_srev',{type:'bar',data:{labels:D.strat_rev.map(x=>x.s),datasets:[
+   {label:'已付费',data:D.strat_rev.map(x=>x.paid),backgroundColor:sc[0],borderRadius:3,barThickness:12,stack:'s'},
+   {label:'未付费',data:D.strat_rev.map(x=>x.unpaid),backgroundColor:sc[3],borderRadius:3,barThickness:12,stack:'s'}]},options:o});
  renderStratTable();
 }
 const R={dash:renderDash,country:renderCountry,strategy:renderStrategy,weekly:renderWeekly,sdetail:renderSdetail};
