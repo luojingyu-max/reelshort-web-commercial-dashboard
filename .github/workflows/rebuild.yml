@@ -1,0 +1,46 @@
+name: rebuild-dashboard
+on:
+  workflow_dispatch: {}          # 手动"Run workflow"
+  repository_dispatch:            # Cloudflare Worker 上传Excel后触发
+    types: [rebuild]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rebuild
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install openpyxl
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Decrypt data, build & encrypt dashboard
+        working-directory: ci
+        env:
+          DASH_PW: ${{ secrets.DASH_PW }}
+        run: |
+          node dataenc.mjs decrypt-all      # ci/data/*.enc + strategy.json.enc -> 明文(仅 runner 内,不提交)
+          python ci_build_payload.py
+          python html2.py
+          node ci_encrypt.js
+          cp index.html ../index.html
+      - name: Commit index.html only
+        run: |
+          git config user.name "dashboard-bot"
+          git config user.email "dashboard-bot@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "no changes"
+          else
+            git commit -m "auto-rebuild dashboard (Excel update)"
+            git push
+          fi

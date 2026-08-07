@@ -1,0 +1,410 @@
+# -*- coding: utf-8 -*-
+import json
+P = json.load(open("payload2.json"))
+CHARTJS = open("chartjs.min.js").read()
+
+TPL = r"""<!doctype html><html lang="zh" class=""><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>ReelShort 官网商业化数据看板</title>
+<script>__CHARTJS__</script>
+<style>
+:root{--page:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;
+ --grid:#e1e0d9;--axis:#c3c2b7;--border:rgba(11,11,11,.10);
+ --s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;
+ --good:#006300;--bad:#d03b3b;--accent:#E52E2E;--chip:#f0efec;}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){
+ --page:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;
+ --grid:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,.10);
+ --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;
+ --good:#0ca30c;--bad:#e66767;--chip:#26261f;}}
+:root[data-theme="dark"]{--page:#0d0d0d;--surface:#1a1a19;--ink:#fff;--ink2:#c3c2b7;--muted:#898781;
+ --grid:#2c2c2a;--axis:#383835;--border:rgba(255,255,255,.10);
+ --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;
+ --good:#0ca30c;--bad:#e66767;--chip:#26261f;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 20px 64px}
+header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:20px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--ink2);font-size:12.5px;line-height:1.5}
+.sub b{color:var(--ink)}
+.toggle{border:1px solid var(--border);background:var(--surface);color:var(--ink2);border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 18px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border:0;background:none;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.on{color:var(--ink);border-bottom-color:var(--accent)}
+.panel{display:none}.panel.on{display:block}
+h2{font-size:14px;margin:26px 0 12px;font-weight:650}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 16px 12px}
+.card h3{margin:0 0 2px;font-size:13.5px;font-weight:600}
+.card .cap{color:var(--muted);font-size:11.5px;margin:0 0 10px}
+.cwrap{position:relative;height:280px}.cwrap.sm{height:96px}
+.mini .lbl{color:var(--muted);font-size:11.5px}.mini .v{font-size:20px;font-weight:650;letter-spacing:-.02em;margin:2px 0}
+.badge{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;background:var(--chip);color:var(--ink2);margin-left:6px}
+.prog{height:12px;border-radius:6px;background:var(--chip);overflow:hidden;margin:8px 0}
+.prog>span{display:block;height:100%;background:var(--accent);border-radius:6px}
+.up{color:var(--good)}.dn{color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:7px 9px;border-bottom:1px solid var(--border);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:600;font-size:11.5px}
+.warnbox{background:var(--chip);border:1px dashed var(--axis);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--ink2);margin-bottom:12px}
+.concl{font-size:13px;line-height:1.7;color:var(--ink2)}.concl b{color:var(--ink)}
+details{margin-top:12px}summary{cursor:pointer;font-size:13px;color:var(--ink2);font-weight:600}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:12.5px;color:var(--ink2)}
+.filters select,.filters input{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12.5px}
+.fbtn{background:var(--chip);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12.5px}
+.fbtn:hover{border-color:var(--accent)}
+#t_detail th,#t_sdetail th{position:sticky;top:0;background:var(--surface);z-index:1}
+#t_sdetail th,#t_detail th,#t_d1 th,#t_d2u th,#t_d2p th{cursor:pointer;user-select:none;white-space:nowrap}
+#t_sdetail th:hover,#t_detail th:hover,#t_d1 th:hover,#t_d2u th:hover,#t_d2p th:hover{color:var(--ink)}
+footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
+@media(max-width:900px){.grid2,.grid4,.grid5{grid-template-columns:1fr 1fr}}
+</style></head><body><div class="wrap">
+<header class="top">
+ <div><h1>ReelShort 官网商业化数据看板</h1>
+ <div class="sub">数据源:Lark「官网商业化面板汇总记录」快照 · 大盘 <b>2026-01-01 → __GEN__</b> · 生成 <b>__GEN__</b></div></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap">
+  <button class="toggle" id="up" title="上传 官网大盘.xlsx / 国家+付费.xlsx / 引流app.xlsx,自动重建看板">📤 上传Excel更新</button>
+  <button class="toggle" id="tg">◐ 深/浅色</button>
+ </div>
+</header>
+<div class="tabs">
+ <button class="tab on" data-t="dash">大盘</button>
+ <button class="tab" data-t="country">国家</button>
+ <button class="tab" data-t="strategy">面板策略</button>
+</div>
+
+<section class="panel on" id="p-dash">
+ <div class="warnbox" id="tgt-warn"></div>
+ <div class="grid4" id="dash-kpi"></div>
+ <h2>核心指标 · 月环比 / 周环比</h2>
+ <div class="warnbox" id="mom-note" style="border-style:solid;color:var(--ink2)"></div>
+ <div class="grid5" id="dash-mom"></div>
+ <h2>官网 · 全指标趋势(一眼看清)</h2>
+ <div class="grid4" id="minis"></div>
+ <h2>收入与 LTV</h2>
+ <div class="grid2">
+  <div class="card"><h3>官网 vs 引流App 日收入</h3><p class="cap">$ · 2026-06-01 起</p><div class="cwrap"><canvas id="c_ov"></canvas></div></div>
+  <div class="card"><h3>LTV 曲线(成熟批次)</h3><p class="cap" id="cap_ltv"></p><div class="cwrap"><canvas id="c_ltv"></canvas></div></div>
+ </div>
+ <h2>引流App</h2>
+ <div class="grid2">
+  <div class="card"><h3>引流App 日收入</h3><p class="cap">$ · 充值+广告</p><div class="cwrap"><canvas id="c_apprev"></canvas></div></div>
+  <div class="card"><h3>引流App 付费/订阅 UV</h3><p class="cap">人</p><div class="cwrap"><canvas id="c_appuv"></canvas></div></div>
+ </div>
+ <h2>大盘明细(官网大盘 · 逐日全字段)</h2>
+ <div class="card">
+  <div class="filters">
+   <label>日期 <input type="date" id="s_from"></label>
+   <label>~ <input type="date" id="s_to"></label>
+   <input type="text" id="s_kw" placeholder="关键词(日期)"/>
+   <button class="fbtn" id="s_reset">重置</button>
+   <button class="fbtn" id="s_csv">导出CSV</button>
+   <span class="badge" id="s_count"></span>
+  </div>
+  <div style="overflow:auto;max-height:520px;margin-top:10px"><table id="t_sdetail"></table></div>
+ </div>
+</section>
+
+<section class="panel" id="p-country">
+ <div class="warnbox" id="cwin-note"></div>
+ <div class="grid2">
+  <div class="card"><h3>各国收入(已付费 vs 未付费)</h3><p class="cap">本月至今 $ · 堆叠</p><div class="cwrap"><canvas id="c_cstack"></canvas></div></div>
+  <div class="card"><h3>收入月环比 MoM</h3><p class="cap">本月至今 vs 上月同期 · %</p><div class="cwrap"><canvas id="c_mom"></canvas></div></div>
+ </div>
+ <h2>各国 KPI 明细(带月/周环比)</h2>
+ <div class="card"><div style="overflow-x:auto"><table id="t_ctab"></table></div></div>
+ <h2>各国 LTV 曲线(成熟批次 · DAU加权)</h2>
+ <div class="grid2">
+  <div class="card"><h3>LTV 曲线 · 收入 Top6 国家</h3><p class="cap" id="cap_cltv">ltv0→ltv30 · $/人</p><div class="cwrap"><canvas id="c_cltv"></canvas></div></div>
+  <div class="card"><h3>各国 LTV(全部国家)</h3><p class="cap">$/人 · ltv0 / ltv7 / ltv14 / ltv30</p><div style="overflow-x:auto;max-height:300px"><table id="t_cltv"></table></div></div>
+ </div>
+ <h2>国家+付费明细(国家×付费状态×日期 · 全量,可自由筛选)</h2>
+ <div class="card">
+  <div class="filters">
+   <label>国家 <select id="f_country"></select></label>
+   <label>付费状态 <select id="f_paid"><option value="">全部</option><option>已付费</option><option>未付费</option></select></label>
+   <label>日期 <input type="date" id="f_from"></label>
+   <label>~ <input type="date" id="f_to"></label>
+   <input type="text" id="f_kw" placeholder="关键词(国家/日期)"/>
+   <button class="fbtn" id="f_reset">重置</button>
+   <button class="fbtn" id="f_csv">导出CSV</button>
+   <span class="badge" id="f_count"></span>
+  </div>
+  <div style="overflow:auto;max-height:600px;margin-top:10px"><table id="t_detail"></table></div>
+ </div>
+</section>
+
+<section class="panel" id="p-strategy">
+ <h2>一期(6.17 · 注册国家分层)</h2>
+ <div class="grid2">
+  <div class="card"><h3>付费率:策略前 vs 后</h3><p class="cap">% · 各国</p><div class="cwrap"><canvas id="c_p1pay"></canvas></div></div>
+  <div class="card"><h3>IAP 变化</h3><p class="cap">日均IAP$ 前后</p><div style="overflow-x:auto;max-height:280px"><table id="t_p1"></table></div></div>
+ </div>
+ <div class="grid2" style="margin-top:12px">
+  <div class="card"><h3>一期 LTV 曲线(各国均值 · 前 vs 后)</h3><p class="cap">$/人 · ltv0/7/14/30</p><div class="cwrap"><canvas id="c_p1ltv"></canvas></div></div>
+  <div class="card"><h3>一期 各国 LTV30 前后</h3><p class="cap">$/人</p><div style="overflow-x:auto;max-height:280px"><table id="t_p1ltv"></table></div></div>
+ </div>
+ <div class="card" style="margin-top:12px"><h3>一期结论</h3><div class="concl" id="concl1"></div></div>
+
+ <h2>二期(7.17 · 付费状态分层:未付费 / 已付费)</h2>
+ <div class="warnbox">二期数据由脚本按同口径实时计算(前 6.17–7.16 / 后 7.17–7.29;IAP=总收入)。当时该 Lark 表 App 无写权限,二期未写回文档,故此处为计算值。LTV 因上线仅 13 天未成熟,暂不列。</div>
+ <div class="grid2">
+  <div class="card"><h3>未付费 · 付费率前后</h3><p class="cap">%</p><div class="cwrap"><canvas id="c_p2u"></canvas></div></div>
+  <div class="card"><h3>已付费 · 付费率前后</h3><p class="cap">%</p><div class="cwrap"><canvas id="c_p2p"></canvas></div></div>
+ </div>
+ <div class="grid2" style="margin-top:12px">
+  <div class="card"><h3>未付费 · IAP 变化</h3><div style="overflow-x:auto;max-height:260px"><table id="t_p2u"></table></div></div>
+  <div class="card"><h3>已付费 · IAP 变化</h3><div style="overflow-x:auto;max-height:260px"><table id="t_p2p"></table></div></div>
+ </div>
+ <div class="grid2" style="margin-top:12px">
+  <div class="card"><h3>二期·未付费 LTV(前 vs 后)</h3><p class="cap">$/人 · ltv0/1/7/14/30 · 上线仅13天,后段未成熟(前向填充,偏低)</p><div class="cwrap"><canvas id="c_p2ultv"></canvas></div></div>
+  <div class="card"><h3>二期·已付费 LTV(前 vs 后)</h3><p class="cap">$/人 · ltv0/1/7/14/30 · 后段未成熟</p><div class="cwrap"><canvas id="c_p2pltv"></canvas></div></div>
+ </div>
+ <div class="card" style="margin-top:12px"><h3>二期结论</h3><div class="concl" id="concl2"></div></div>
+ <h2>策略明细(表2 · 面板数据回收 · 全字段)</h2>
+ <div class="card"><h3>一期 · 注册国家</h3><div style="overflow:auto;max-height:340px"><table id="t_d1"></table></div></div>
+ <div class="grid2" style="margin-top:12px">
+  <div class="card"><h3>二期 · 未付费</h3><div style="overflow:auto;max-height:340px"><table id="t_d2u"></table></div></div>
+  <div class="card"><h3>二期 · 已付费</h3><div style="overflow:auto;max-height:340px"><table id="t_d2p"></table></div></div>
+ </div>
+ <details><summary>策略定义明细(表1 · 面板策略记录)</summary><div style="overflow-x:auto;margin-top:10px"><table id="t_strat"></table></div></details>
+</section>
+
+<footer id="foot"></footer>
+</div>
+<script>
+const D=__PAYLOAD__;
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const SC=()=>['--s1','--s2','--s3','--s4','--s5','--s6'].map(css);
+const usd=n=>n==null?'—':'$'+Math.round(n).toLocaleString();
+const usd1=n=>n==null?'—':'$'+Number(n).toFixed(1);
+const ltvf=n=>n==null?'—':'$'+Number(n).toFixed(3);
+const int=n=>n==null?'—':Math.round(n).toLocaleString();
+const pc=(n,d=2)=>n==null?'—':n.toFixed(d)+'%';
+const chg=p=>p==null?'':`<span class="${p>=0?'up':'dn'}">${p>=0?'▲':'▼'}${Math.abs(p).toFixed(1)}%</span>`;
+
+/* ---- Chart helpers ---- */
+function base(){Chart.defaults.font.family='system-ui,-apple-system,sans-serif';Chart.defaults.color=css('--muted');
+ return{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+  plugins:{legend:{display:true,labels:{color:css('--ink2'),boxWidth:12,boxHeight:12,usePointStyle:true,pointStyle:'rectRounded'}},
+   tooltip:{backgroundColor:css('--surface'),titleColor:css('--ink'),bodyColor:css('--ink2'),borderColor:css('--border'),borderWidth:1,padding:9,usePointStyle:true}},
+  scales:{x:{grid:{color:'transparent'},ticks:{color:css('--muted'),maxRotation:0,autoSkip:true,maxTicksLimit:8}},
+   y:{grid:{color:css('--grid')},border:{display:false},ticks:{color:css('--muted')}}}};}
+const L=(y,c,label)=>({label,data:y,borderColor:c,backgroundColor:c,borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:.25,fill:false});
+let reg={};
+function mk(id,cfg){if(reg[id])reg[id].destroy();reg[id]=new Chart(document.getElementById(id),cfg);}
+
+/* ---- header/warn ---- */
+document.getElementById('cap_ltv').textContent='$ · ltv0→ltv30 · '+D.ltv_date+' 批次(已成熟)';
+const compPct=D.target_cur?Math.round(D.mtd/D.target_cur*100):null;
+const hit=compPct!=null&&compPct>=100;
+const wb=document.getElementById('tgt-warn');
+wb.style.borderStyle='solid';wb.style.color=css('--good');
+wb.innerHTML=(hit?'✅ ':'')+`<b>官网大盘 = 官网直充口径</b>(不含引流App)。${D.cur_month} `+
+ (hit?`<b>已达标</b>:实际 ${usd(D.mtd)} / 目标 ${usd(D.target_cur)} = <b>${compPct}%</b>(超额 ${(D.mtd/D.target_cur).toFixed(1)}×)。`
+     :`实际 ${usd(D.mtd)} / 目标 ${usd(D.target_cur)} = <b>${compPct}%</b>。`)+
+ ` 月度目标:7月$60k / 8月$80k / 9月$100k。`;
+
+/* ---- KPI cards (dash) ---- */
+const K=D.kpi;
+document.getElementById('dash-kpi').innerHTML=[
+ ['近30日总收入',usd(K.rev30),'官网大盘合计'],
+ [`完成进度 (${D.cur_month})`,(compPct==null?'—':compPct+'%')+(hit?' <span class="badge" style="color:var(--good)">🎉 已达标</span>':''),`${usd(D.mtd)} / 目标 ${usd(D.target_cur)}`],
+ ['最新日 DAU',int(K.dau.cur),chg(K.dau.pct)+' vs 前一日'],
+ ['最新日 ARPPU',usd1(K.arppu.cur),chg(K.arppu.pct)+' vs 前一日'],
+].map(([l,v,s])=>`<div class="card"><div class="mini"><div class="lbl">${l}</div><div class="v">${v}</div><div class="lbl">${s}</div></div>${l.includes('完成进度')?`<div class="prog"><span style="width:${Math.min(100,compPct||0)}%;background:${hit?css('--good'):css('--accent')}"></span></div>`:''}</div>`).join('');
+
+/* ---- small multiples (dash) ---- */
+const MINIS=[['DAU',D.dau,int],['总收入',D.rev,usd],['付费率',D.payrate,x=>pc(x,3)],['订阅率',D.subrate,x=>pc(x,3)],
+ ['ARPPU',D.arppu,usd1],['充值uv',D.chargeuv,int],['订阅uv',D.subuv,int]];
+document.getElementById('minis').innerHTML=MINIS.map((m,i)=>{
+ const last=[...m[1]].reverse().find(v=>v!=null);
+ return `<div class="card"><div class="mini"><div class="lbl">${m[0]}</div><div class="v">${m[2](last)}</div></div><div class="cwrap sm"><canvas id="mini${i}"></canvas></div></div>`;
+}).join('');
+
+/* ---- render per tab ---- */
+const done={};
+function renderDash(){
+ const sc=SC();
+ // 大盘 月环比/周环比
+ const dm=D.dash_mom, fmtV={usd:usd,usd1:usd1,usd4:n=>'$'+Number(n).toFixed(4),pct3:n=>pc(n,3)};
+ document.getElementById('dash-mom').innerHTML=dm.metrics.map(m=>
+  `<div class="card"><div class="mini"><div class="lbl">${m.label}</div><div class="v">${fmtV[m.fmt](m.cur)}</div>`+
+  `<div class="lbl">月环比 ${chg(m.mom)}</div><div class="lbl">周环比 ${chg(m.wow)}</div></div></div>`).join('');
+ const mw=dm.win;
+ document.getElementById('mom-note').innerHTML=`月环比 = 本月至今 <b>${mw.month[0]}~${mw.month[1]}</b> vs 上月同期 <b>${mw.lastmonth[0]}~${mw.lastmonth[1]}</b> · 周环比 = <b>${mw.week[0]}~${mw.week[1]}</b> vs <b>${mw.pastweek[0]}~${mw.pastweek[1]}</b>`;
+ mk('c_ov',{type:'line',data:{labels:D.ov_dates,datasets:[L(D.ov_site,sc[0],'官网'),L(D.ov_app,sc[1],'引流App')]},options:base()});
+ let ol=base();ol.plugins.legend.display=false;ol.scales.x.ticks.maxTicksLimit=12;
+ mk('c_ltv',{type:'line',data:{labels:D.ltv.map((_,i)=>'D'+i),datasets:[L(D.ltv,sc[0],'LTV')]},options:ol});
+ let a1=base();a1.plugins.legend.display=false;
+ mk('c_apprev',{type:'line',data:{labels:D.app.map(x=>x.date),datasets:[L(D.app.map(x=>x.rev),sc[1],'引流App收入')]},options:a1});
+ mk('c_appuv',{type:'line',data:{labels:D.app.map(x=>x.date),datasets:[L(D.app.map(x=>x.pay_uv),sc[0],'付费uv'),L(D.app.map(x=>x.sub_uv),sc[2],'订阅uv')]},options:base()});
+ MINIS.forEach((m,i)=>{let o=base();o.plugins.legend.display=false;o.plugins.tooltip.enabled=true;
+  o.scales.x.display=false;o.scales.y.display=false;o.elements={point:{radius:0}};
+  mk('mini'+i,{type:'line',data:{labels:D.dates,datasets:[{data:m[1],borderColor:css('--s1'),borderWidth:1.8,pointRadius:0,pointHoverRadius:3,tension:.3,fill:true,backgroundColor:'rgba(42,120,214,.10)'}]},options:o});});
+ renderSiteDetail();
+}
+function renderCountry(){
+ const sc=SC(),ct=D.ctab;
+ let os=base();os.scales.x.stacked=true;os.scales.y.stacked=true;os.scales.x.ticks.autoSkip=false;os.scales.x.ticks.maxRotation=50;os.scales.x.ticks.minRotation=50;
+ mk('c_cstack',{type:'bar',data:{labels:ct.map(c=>c.c),datasets:[
+   {label:'已付费',data:ct.map(c=>c.rev_paid),backgroundColor:sc[0],borderRadius:3,stack:'s'},
+   {label:'未付费',data:ct.map(c=>c.rev_unpaid),backgroundColor:sc[3],borderRadius:3,stack:'s'}]},options:os});
+ let om=base();om.plugins.legend.display=false;om.scales.x.ticks.autoSkip=false;om.scales.x.ticks.maxRotation=50;om.scales.x.ticks.minRotation=50;
+ mk('c_mom',{type:'bar',data:{labels:ct.map(c=>c.c),datasets:[{data:ct.map(c=>c.rev_mom),
+   backgroundColor:ct.map(c=>c.rev_mom>=0?css('--s3'):css('--s2')),borderRadius:3}]},options:om});
+ const w=D.cwindows;
+ document.getElementById('cwin-note').innerHTML=`月环比 = 本月至今 <b>${w.month[0]}~${w.month[1]}</b> vs 上月同期 <b>${w.lastmonth[0]}~${w.lastmonth[1]}</b> · 周环比 = <b>${w.week[0]}~${w.week[1]}</b> vs <b>${w.pastweek[0]}~${w.pastweek[1]}</b>。收入区分已付费/未付费。`;
+ document.getElementById('t_ctab').innerHTML=
+  '<thead><tr><th>国家</th><th>本月收入</th><th>已付费</th><th>未付费</th><th>MoM</th><th>WoW</th><th>付费率</th><th>ARPPU</th><th>日均DAU</th></tr></thead><tbody>'+
+  ct.map(c=>`<tr><td>${c.c}</td><td>${usd(c.rev)}</td><td>${usd(c.rev_paid)}</td><td>${usd(c.rev_unpaid)}</td><td>${chg(c.rev_mom)}</td><td>${chg(c.rev_wow)}</td><td>${pc(c.payrate,3)}</td><td>${usd1(c.arppu)}</td><td>${int(c.dau)}</td></tr>`).join('')+'</tbody>';
+ // 各国 LTV 曲线(Top6)+ 全量表
+ const cl=D.country_ltv, top6=ct.slice(0,6).map(c=>c.c);
+ let ol=base(); ol.scales.x.ticks.maxTicksLimit=8;
+ mk('c_cltv',{type:'line',data:{labels:cl.curve[cl.countries[0]].map((_,i)=>'D'+i),
+   datasets:top6.map((c,i)=>L(cl.curve[c],sc[i%6],c))},options:ol});
+ document.getElementById('cap_cltv').textContent='ltv0→ltv30 · $/人 · 成熟批次(≤'+cl.mature_cut+')';
+ document.getElementById('t_cltv').innerHTML='<thead><tr><th>国家</th><th>LTV0</th><th>LTV7</th><th>LTV14</th><th>LTV30</th></tr></thead><tbody>'+
+  D.country_ltv_table.map(r=>`<tr><td>${r.c}</td><td>${ltvf(r.ltv0)}</td><td>${ltvf(r.ltv7)}</td><td>${ltvf(r.ltv14)}</td><td>${ltvf(r.ltv30)}</td></tr>`).join('')+'</tbody>';
+ renderCountryDetail();
+}
+function grouped(id,rows,ka,kb){const sc=SC();let o=base();o.scales.x.ticks.autoSkip=false;o.scales.x.ticks.maxRotation=50;o.scales.x.ticks.minRotation=50;
+ mk(id,{type:'bar',data:{labels:rows.map(r=>r.c),datasets:[
+  {label:'前',data:rows.map(r=>r[ka]),backgroundColor:sc[0],borderRadius:3},
+  {label:'后',data:rows.map(r=>r[kb]),backgroundColor:sc[1],borderRadius:3}]},options:o});}
+function iapTable(id,rows){document.getElementById(id).innerHTML=
+ '<thead><tr><th>国家</th><th>IAP前</th><th>IAP后</th><th>变化</th></tr></thead><tbody>'+
+ rows.map(r=>{const u=String(r.iapchg||r.iapchg).includes('+');return `<tr><td>${r.c}</td><td>${usd(r.iap_a!=null?r.iap_a:r[11])}</td><td>${usd(r.iap_b!=null?r.iap_b:r[12])}</td><td class="${u?'up':'dn'}">${r.iapchg}</td></tr>`}).join('')+'</tbody>';}
+function renderStrategy(){
+ // 一期 from doc panel1: cols 0国家,3付费率前,4付费率后,11 IAP前,12 IAP后,13 变化
+ const p1=D.panel1.map(r=>({c:r[0],pr_a:+r[3],pr_b:+r[4],iap_a:+r[11],iap_b:+r[12],iapchg:r[13]}));
+ grouped('c_p1pay',p1,'pr_a','pr_b');
+ iapTable('t_p1',p1);
+ grouped('c_p2u',D.phase2_unpaid,'pr_a','pr_b');
+ grouped('c_p2p',D.phase2_paid,'pr_a','pr_b');
+ iapTable('t_p2u',D.phase2_unpaid);
+ iapTable('t_p2p',D.phase2_paid);
+ // ---- strategy LTV curves ----
+ const sc=SC();
+ const P1=D.panel1;
+ function aggLtv(front){const wi=front?1:2, cols=front?[14,16,18,20]:[15,17,19,21];
+   let w=0,acc=[0,0,0,0]; P1.forEach(r=>{const dw=+r[wi]||0; w+=dw; cols.forEach((ci,k)=>acc[k]+=(+r[ci]||0)*dw);});
+   return w?acc.map(v=>+(v/w).toFixed(4)):[null,null,null,null];}
+ mk('c_p1ltv',{type:'line',data:{labels:['D0','D7','D14','D30'],datasets:[L(aggLtv(true),sc[0],'前'),L(aggLtv(false),sc[1],'后')]},options:base()});
+ document.getElementById('t_p1ltv').innerHTML='<thead><tr><th>国家</th><th>LTV30前</th><th>LTV30后</th></tr></thead><tbody>'+
+  P1.map(r=>`<tr><td>${r[0]}</td><td>${ltvf(+r[20])}</td><td>${ltvf(+r[21])}</td></tr>`).join('')+'</tbody>';
+ const pl=D.phase2_ltv, plab=pl.pts.map(k=>'D'+k);
+ mk('c_p2ultv',{type:'line',data:{labels:plab,datasets:[L(pl.unpaid_pre,sc[0],'前'),L(pl.unpaid_post,sc[1],'后')]},options:base()});
+ mk('c_p2pltv',{type:'line',data:{labels:plab,datasets:[L(pl.paid_pre,sc[0],'前'),L(pl.paid_post,sc[1],'后')]},options:base()});
+ // conclusions
+ const upc=a=>a.filter(x=>String(x.iapchg).includes('+')).map(x=>x.c);
+ const dnc=a=>a.filter(x=>!String(x.iapchg).includes('+')).map(x=>x.c);
+ document.getElementById('concl1').innerHTML=
+  `一期按<b>注册国家</b>分层(6.17)。付费率普遍抬升,美国 ${p1[0].pr_a}%→${p1[0].pr_b}%。IAP 增长显著的有 ${upc(p1).slice(0,6).join('、')} 等。详见上表与柱图。`;
+ const u=D.phase2_unpaid,p=D.phase2_paid;
+ document.getElementById('concl2').innerHTML=
+  `二期按<b>付费状态</b>分层(7.17)。<br><b>已付费</b>:IAP 全面上涨(${upc(p).length}/${p.length} 国),策略生效,建议保留推广。<br><b>未付费</b>:分化明显——涨的 ${upc(u).join('、')||'无'};跌的 ${dnc(u).join('、')} 多为成熟市场,需回调定价或再测。`;
+ // strategy definition table
+ const sh=D.strategy_header;
+ document.getElementById('t_strat').innerHTML='<thead><tr>'+['层级','国家','策略名称/画像ID','上架时间','盘口','用户画像'].map(x=>`<th>${x}</th>`).join('')+'</tr></thead><tbody>'+
+  D.strategy.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[10]}</td><td>${r[11]}</td><td style="text-align:left">${r[5]}</td></tr>`).join('')+'</tbody>';
+ // 策略明细(表2)
+ document.getElementById('t_d1').innerHTML='<thead><tr>'+D.panel1_header.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>'+
+  D.panel1.map(r=>'<tr>'+r.map(v=>`<td>${v==null?'':v}</td>`).join('')+'</tr>').join('')+'</tbody>';
+ const p2cols=['国家','付费率前','付费率后','订阅率前','订阅率后','ARPPU前','ARPPU后','IAP前','IAP后','IAP变化','LTV0前','LTV0后','LTV7前','LTV7后','LTV14前','LTV14后','LTV30前','LTV30后'];
+ const p2row=r=>`<tr><td>${r.c}</td><td>${r.pr_a}</td><td>${r.pr_b}</td><td>${r.sr_a}</td><td>${r.sr_b}</td><td>${usd1(r.arppu_a)}</td><td>${usd1(r.arppu_b)}</td><td>${usd(r.iap_a)}</td><td>${usd(r.iap_b)}</td><td>${r.iapchg}</td><td>${ltvf(r.l0_a)}</td><td>${ltvf(r.l0_b)}</td><td>${ltvf(r.l7_a)}</td><td>${ltvf(r.l7_b)}</td><td>${ltvf(r.l14_a)}</td><td>${ltvf(r.l14_b)}</td><td>${ltvf(r.l30_a)}</td><td>${ltvf(r.l30_b)}</td></tr>`;
+ const p2html=rows=>'<thead><tr>'+p2cols.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>'+rows.map(p2row).join('')+'</tbody>';
+ document.getElementById('t_d2u').innerHTML=p2html(D.phase2_unpaid);
+ document.getElementById('t_d2p').innerHTML=p2html(D.phase2_paid);
+ ['t_d1','t_d2u','t_d2p'].forEach(makeSortable);
+}
+const g=id=>document.getElementById(id);
+function makeSortable(id){
+ const t=g(id); if(!t||t.dataset.sortable)return; t.dataset.sortable='1';
+ t.addEventListener('click',e=>{
+  const th=e.target.closest('th'); if(!th||!th.parentNode||th.parentNode.parentNode.tagName!=='THEAD')return;
+  const heads=[...th.parentNode.children], idx=heads.indexOf(th), asc=th.dataset.dir!=='asc';
+  heads.forEach(h=>{h.dataset.dir='';h.innerHTML=h.innerHTML.replace(/\s*[▲▼]$/,'');});
+  th.dataset.dir=asc?'asc':'desc';
+  const tb=t.querySelector('tbody'); if(!tb)return;
+  const parse=s=>{const c=String(s).replace(/[$%\s]/g,'').replace(/,/g,''); return (c!==''&&/^[+-]?\d*\.?\d+$/.test(c))?Number(c):String(s);};
+  [...tb.children].sort((a,b)=>{const x=parse(a.children[idx]?a.children[idx].textContent:''),y=parse(b.children[idx]?b.children[idx].textContent:'');
+    if(typeof x==='number'&&typeof y==='number')return asc?x-y:y-x;
+    return asc?String(x).localeCompare(String(y),'zh'):String(y).localeCompare(String(x),'zh');})
+   .forEach(r=>tb.appendChild(r));
+  th.innerHTML=th.innerHTML.replace(/\s*[▲▼]$/,'')+(asc?' ▲':' ▼');
+ });
+}
+function makeFilterTable(o){
+ let filt=[];
+ function apply(){
+  const c=o.ids.country?g(o.ids.country).value:'',p=o.ids.paid?g(o.ids.paid).value:'';
+  const fr=g(o.ids.from).value,to=g(o.ids.to).value,kw=(g(o.ids.kw).value||'').trim();
+  filt=o.rows.filter(r=>(!c||r[o.cIdx]===c)&&(!p||r[o.pIdx]===p)&&(!fr||r[0]>=fr)&&(!to||r[0]<=to)&&(!kw||r.slice(0,2).join(' ').indexOf(kw)>=0));
+  g(o.ids.table).querySelector('tbody').innerHTML=filt.map(r=>'<tr>'+r.map((v,i)=>`<td>${o.fmt(v,i)}</td>`).join('')+'</tr>').join('');
+  g(o.ids.count).textContent=filt.length+' / '+o.rows.length+' 行';
+ }
+ return function(){
+  g(o.ids.table).innerHTML='<thead><tr>'+o.cols.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody></tbody>';
+  const t=g(o.ids.table);
+  makeSortable(o.ids.table);
+  if(!t.dataset.init){
+   if(o.ids.country)g(o.ids.country).innerHTML='<option value="">全部国家</option>'+o.countries.map(c=>`<option>${c}</option>`).join('');
+   const mn=o.rows[0][0],mx=o.rows[o.rows.length-1][0];
+   g(o.ids.from).value=mn;g(o.ids.to).value=mx;
+   [o.ids.from,o.ids.to,o.ids.country,o.ids.paid].filter(Boolean).forEach(id=>g(id).addEventListener('change',apply));
+   g(o.ids.kw).addEventListener('input',apply);
+   g(o.ids.reset).onclick=()=>{if(o.ids.country)g(o.ids.country).value='';if(o.ids.paid)g(o.ids.paid).value='';g(o.ids.from).value=mn;g(o.ids.to).value=mx;g(o.ids.kw).value='';apply();};
+   g(o.ids.csv).onclick=()=>{const lines=[o.cols.join(',')].concat(filt.map(r=>r.join(',')));const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'}));a.download=o.csv;a.click();};
+   t.dataset.init='1';
+  }
+  apply();
+ };
+}
+const gnum=v=>typeof v==='number'?(Math.abs(v)>=100?Math.round(v).toLocaleString():(Number.isInteger(v)?v:(Math.abs(v)<1?v.toFixed(4):v.toFixed(2)))):v;
+const renderSiteDetail=makeFilterTable({rows:D.site_detail,cols:D.site_detail_cols,cIdx:-1,pIdx:-1,
+ fmt:(v,i)=>i===0?v:gnum(v),csv:'大盘明细.csv',
+ ids:{from:'s_from',to:'s_to',kw:'s_kw',reset:'s_reset',csv:'s_csv',count:'s_count',table:'t_sdetail'}});
+const renderCountryDetail=makeFilterTable({rows:D.detail,cols:D.detail_cols,cIdx:1,pIdx:2,countries:D.detail_countries,
+ fmt:(v,i)=>i<3?v:(i===6?usd(v):i>=7?ltvf(v):int(v)),csv:'国家付费明细.csv',
+ ids:{country:'f_country',paid:'f_paid',from:'f_from',to:'f_to',kw:'f_kw',reset:'f_reset',csv:'f_csv',count:'f_count',table:'t_detail'}});
+const R={dash:renderDash,country:renderCountry,strategy:renderStrategy};
+function show(t){
+ document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+ document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));
+ R[t]();done[t]=true;
+}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>show(b.dataset.t));
+document.getElementById('tg').onclick=()=>{const c=document.documentElement.getAttribute('data-theme');
+ const dark=c?c==='dark':matchMedia('(prefers-color-scheme:dark)').matches;
+ document.documentElement.setAttribute('data-theme',dark?'light':'dark');
+ const on=document.querySelector('.tab.on').dataset.t;R[on]();};
+document.getElementById('foot').innerHTML='v2 · 3-Tab。数据可经「📤上传Excel更新」自动重建(约1–2分钟)。官网大盘=官网直充口径(不含引流App)。';
+document.getElementById('up').onclick=()=>{
+ let url=localStorage.getItem('dash_worker');
+ if(!url){url=prompt('首次使用:粘贴「数据更新服务地址」(Cloudflare Worker URL,找管理员要)');if(!url)return;localStorage.setItem('dash_worker',url.trim());}
+ const inp=document.createElement('input');inp.type='file';inp.accept='.xlsx';inp.multiple=true;
+ inp.onchange=async()=>{
+  if(!inp.files.length)return;
+  const fd=new FormData();[...inp.files].forEach(f=>fd.append('file',f));
+  const btn=document.getElementById('up');const old=btn.textContent;btn.textContent='上传中…';btn.disabled=true;
+  try{const r=await fetch(localStorage.getItem('dash_worker'),{method:'POST',body:fd});
+   if(r.ok){const j=await r.json().catch(()=>({}));btn.textContent='✅ 已触发重建';alert('已上传 '+(j.files||inp.files.length)+' 个文件,正在重建。约 1–2 分钟后刷新本页即可看到新数据。');}
+   else{btn.textContent='❌ 失败';alert('失败:'+(await r.text().catch(()=>('HTTP '+r.status))));}
+  }catch(e){btn.textContent='❌ 失败';alert('网络错误:'+e.message+'\\n(检查更新服务地址是否正确)');}
+  setTimeout(()=>{btn.textContent=old;btn.disabled=false;},5000);
+ };
+ inp.click();
+};
+show('dash');
+</script></body></html>"""
+
+html=(TPL.replace("__PAYLOAD__",json.dumps(P,ensure_ascii=False))
+        .replace("__GEN__",P["gen"]).replace("__CHARTJS__",CHARTJS))
+open("index.html","w").write(html)
+print("index.html:",len(html),"bytes")
