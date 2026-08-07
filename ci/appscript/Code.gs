@@ -21,7 +21,7 @@ function pullBIExcelDaily() {
 
   const processed = getOrCreateLabel_('BI-已处理');
   // 最近 3 天、含附件、未处理的 BI 邮件
-  const query = 'from:quickbi@service.aliyun.com subject:官网大盘数据邮箱推送 has:attachment newer_than:3d -label:"BI-已处理"';
+  const query = 'subject:官网大盘数据 has:attachment newer_than:3d -label:"BI-已处理"';
   const threads = GmailApp.search(query, 0, 10);
   if (!threads.length) { Logger.log('没有待处理的 BI 邮件'); return; }
 
