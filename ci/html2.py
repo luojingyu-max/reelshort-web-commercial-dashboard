@@ -385,15 +385,16 @@ document.getElementById('tg').onclick=()=>{const c=document.documentElement.getA
  document.documentElement.setAttribute('data-theme',dark?'light':'dark');
  const on=document.querySelector('.tab.on').dataset.t;R[on]();};
 document.getElementById('foot').innerHTML='v2 · 3-Tab。数据可经「📤上传Excel更新」自动重建(约1–2分钟)。官网大盘=官网直充口径(不含引流App)。';
+const WORKER_URL='https://rs-dash-update.luojingyu.workers.dev';
 document.getElementById('up').onclick=()=>{
- let url=localStorage.getItem('dash_worker');
+ let url=WORKER_URL||localStorage.getItem('dash_worker');
  if(!url){url=prompt('首次使用:粘贴「数据更新服务地址」(Cloudflare Worker URL,找管理员要)');if(!url)return;localStorage.setItem('dash_worker',url.trim());}
  const inp=document.createElement('input');inp.type='file';inp.accept='.xlsx';inp.multiple=true;
  inp.onchange=async()=>{
   if(!inp.files.length)return;
   const fd=new FormData();[...inp.files].forEach(f=>fd.append('file',f));
   const btn=document.getElementById('up');const old=btn.textContent;btn.textContent='上传中…';btn.disabled=true;
-  try{const r=await fetch(localStorage.getItem('dash_worker'),{method:'POST',body:fd});
+  try{const r=await fetch(url,{method:'POST',body:fd});
    if(r.ok){const j=await r.json().catch(()=>({}));btn.textContent='✅ 已触发重建';alert('已上传 '+(j.files||inp.files.length)+' 个文件,正在重建。约 1–2 分钟后刷新本页即可看到新数据。');}
    else{btn.textContent='❌ 失败';alert('失败:'+(await r.text().catch(()=>('HTTP '+r.status))));}
   }catch(e){btn.textContent='❌ 失败';alert('网络错误:'+e.message+'\\n(检查更新服务地址是否正确)');}
