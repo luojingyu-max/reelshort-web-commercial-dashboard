@@ -200,7 +200,7 @@ panel1=strat["panel1"]+[p1row("韩国"), p1row("泰国")]
 # ---------- 面板策略明细(交叉表:日期×货架ID×策略) ----------
 P2C13=["美国","加拿大","澳大利亚","英国","法国","日本","意大利","巴西","墨西哥","智利","阿根廷","韩国","泰国"]
 sd_rows=[]; srev=defaultdict(lambda:{"p":0.0,"u":0.0}); sset=set()
-cbys=defaultdict(lambda:defaultdict(lambda:{"exp":0.0,"rev":0.0}))
+cbys=defaultdict(lambda:defaultdict(lambda:{"exp":0.0,"pay":0.0,"rev":0.0}))
 for r in ws(f"{D}/策略交叉表.xlsx").iter_rows(min_row=2, values_only=True):
     d=s2d(r[0])
     if not d or not re.match(r'2026-\d\d-\d\d',str(r[0])[:10]) or not r[2]: continue
@@ -209,12 +209,17 @@ for r in ws(f"{D}/策略交叉表.xlsx").iter_rows(min_row=2, values_only=True):
         round(num(r[8])), round(num(r[9])), round(num(r[10])), round(num(r[11])), round(num(r[12]),2),
         round(num(r[13]),2), round(num(r[14]),2), round(num(r[15]))])
     srev[r[2]]["p" if pd=="已付费" else "u"]+=num(r[12]); sset.add(r[2])
-    if r[3] in P2C13: cbys[r[3]][r[2]]["exp"]+=num(r[5]); cbys[r[3]][r[2]]["rev"]+=num(r[12])
-strat_by_country={}
+    if r[3] in P2C13:
+        cbys[r[3]][r[2]]["exp"]+=num(r[5]); cbys[r[3]][r[2]]["pay"]+=num(r[7]); cbys[r[3]][r[2]]["rev"]+=num(r[12])
+def _sl(s): return s.replace("官网-","").replace("-kim","").replace("kim ","")
+strat_by_country={}; strat_bubble=[]
 for c in P2C13:
-    items=sorted([{"sl":s.replace("官网-","").replace("-kim","").replace("kim ",""),"exp":round(v["exp"]),"rev":round(v["rev"],2)}
-                  for s,v in cbys[c].items() if v["exp"]>0], key=lambda x:-x["exp"])[:6]
-    if items: strat_by_country[c]=items
+    its=[{"sl":_sl(s),"exp":round(v["exp"]),"rate":round(v["pay"]/v["exp"]*100,2) if v["exp"] else 0,"rev":round(v["rev"],2)}
+         for s,v in cbys[c].items() if v["exp"]>0]
+    its.sort(key=lambda x:-x["exp"])
+    if its: strat_by_country[c]=its[:6]
+    for it in its:
+        if it["exp"]>=20: strat_bubble.append({"c":c,"sl":it["sl"],"exp":it["exp"],"rate":it["rate"],"rev":it["rev"]})
 sd_rows.sort(key=lambda x:(x[0],x[2],x[1],x[3]))
 strat_detail_cols=["日期","付费状态","策略","注册国家","曝光pv","曝光uv","充值pv","充值uv","金币充值pv","金币充值uv","首订pv","首订uv","总收入","金币充值收入","首订收入","付费后播放uv"]
 strat_list=sorted(sset)
@@ -230,7 +235,7 @@ P={"gen":dates[-1],"dates":dates,"dau":dau,"rev":rev,"payrate":payrate,"subrate"
    "detail":detail,"detail_cols":detail_cols,"detail_countries":countries,
    "site_detail_cols":sd_cols,"site_detail":site_detail,
    "strat_detail":sd_rows,"strat_detail_cols":strat_detail_cols,"strat_list":strat_list,"strat_rev":strat_rev,
-   "strat_by_country":strat_by_country}
+   "strat_by_country":strat_by_country,"strat_bubble":strat_bubble}
 json.dump(P,open("payload2.json","w"),ensure_ascii=False)
 print("built: site",dates[0],"->",dates[-1],"(",len(dates),"d) | latest DAU",dau[-1],"| 7月rev",round(sum(v for dd,v in zip(dates,rev) if dd[:7]=='2026-07')),
       "| curmonth",cur_month,"MTD",round(mtd),"| ctab",len(ctab),"| detail",len(detail),"| 国家数",len(countries))

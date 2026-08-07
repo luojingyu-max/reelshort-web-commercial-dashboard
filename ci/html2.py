@@ -191,8 +191,11 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
   <div class="card"><h3>各策略总收入 Top12(已付费 vs 未付费)</h3><p class="cap">区间累计 $ · 堆叠 · 数据源:交叉表-纯官网</p><div class="cwrap"><canvas id="c_srev"></canvas></div></div>
   <div class="card"><h3>说明</h3><p class="cap" style="line-height:1.7">维度:日期 × <b>是否付费</b> × <b>策略</b> × <b>注册国家</b>;指标:曝光、充值、金币充值、首订、总收入、付费后播放等。<br>下表可按<b>策略 / 付费状态 / 日期 / 关键词(注册国家)</b>筛选、点表头排序、导出 CSV。数据源为最新下载的「交叉表-纯官网数据看板」。</p></div>
  </div>
- <h2>各覆盖国家 · 命中策略拆分(曝光uv · Top6 策略)</h2>
- <p class="sub" style="margin:-6px 0 12px">表1 点名覆盖的 13 国,各自被哪些策略触达(注册国家×策略,曝光uv 越高=命中越多)。</p>
+ <h2>曝光 × 充值率 × 总收入 · 策略调优视图</h2>
+ <p class="sub" style="margin:-6px 0 12px">覆盖国家的每个策略一个气泡:横轴=曝光uv(对数),纵轴=曝光→充值率%,气泡大小=总收入。<b>右上大气泡</b>=高曝光高转化高产出(保/加量);<b>右下小气泡</b>=曝光大但转化低产出低(该调价/收量);<b>左上</b>=转化高但曝光小(可放量)。悬停看明细。</p>
+ <div class="card"><div class="cwrap" style="height:420px"><canvas id="c_sbub"></canvas></div></div>
+ <h2>各覆盖国家 · 命中策略明细(曝光 / 充值率 / 总收入)</h2>
+ <p class="sub" style="margin:-6px 0 12px">表1 点名覆盖的 13 国,各自命中策略的曝光量、曝光→充值率、总收入并排对比,按曝光uv 取 Top6。</p>
  <div class="grid2" id="cbys"></div>
  <h2>全量明细</h2>
  <div class="card">
@@ -437,10 +440,17 @@ function renderSdetail(){
  mk('c_srev',{type:'bar',data:{labels:D.strat_rev.map(x=>x.s),datasets:[
    {label:'已付费',data:D.strat_rev.map(x=>x.paid),backgroundColor:sc[0],borderRadius:3,barThickness:12,stack:'s'},
    {label:'未付费',data:D.strat_rev.map(x=>x.unpaid),backgroundColor:sc[3],borderRadius:3,barThickness:12,stack:'s'}]},options:o});
+ // 气泡:曝光(x·对数) × 充值率(y) × 总收入(气泡大小)
+ const ha=(h,a)=>{const n=parseInt(h.slice(1),16);return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';};
+ const bub=(D.strat_bubble||[]).map(p=>({x:Math.max(p.exp,1),y:p.rate,r:Math.max(3,Math.min(32,Math.sqrt(p.rev)/4)),_c:p.c,_s:p.sl,_e:p.exp,_rate:p.rate,_rev:p.rev}));
+ let bo=base(); bo.plugins.legend.display=false; bo.interaction={mode:'nearest',intersect:true};
+ bo.scales.x.type='logarithmic'; bo.scales.x.grid.color=css('--grid'); bo.scales.x.title={display:true,text:'曝光uv(对数)',color:css('--muted')}; bo.scales.x.ticks.callback=v=>{const L=[10,100,1000,10000,100000];return L.indexOf(v)>=0?int(v):'';};
+ bo.scales.y.title={display:true,text:'曝光→充值率 %',color:css('--muted')}; bo.scales.y.ticks.callback=v=>v+'%';
+ bo.plugins.tooltip.callbacks={title:()=>'',label:c=>{const d=c.raw;return [d._c+' · '+d._s,'曝光uv '+int(d._e)+'  ·  充值率 '+d._rate+'%','总收入 '+usd(d._rev)];}};
+ mk('c_sbub',{type:'bubble',data:{datasets:[{data:bub,backgroundColor:ha(sc[0],.5),borderColor:sc[0],borderWidth:1,hoverBackgroundColor:ha(sc[1],.7)}]},options:bo});
+ // 各覆盖国家命中策略明细表(曝光/充值率/总收入)
  const cbs=D.strat_by_country||{}, cks=Object.keys(cbs);
- g('cbys').innerHTML=cks.map((c,i)=>`<div class="card"><div class="mini"><div class="lbl">${c} · 命中 ${cbs[c].length} 策略</div></div><div style="position:relative;height:${Math.max(120,cbs[c].length*28+34)}px"><canvas id="cb${i}"></canvas></div></div>`).join('');
- cks.forEach((c,i)=>{let bo=base();bo.indexAxis='y';bo.plugins.legend.display=false;bo.scales.x.grid.color=css('--grid');bo.scales.y.grid.color='transparent';bo.scales.y.ticks.autoSkip=false;bo.scales.y.ticks.font={size:10};bo.scales.x.ticks.maxTicksLimit=4;
-   mk('cb'+i,{type:'bar',data:{labels:cbs[c].map(x=>x.sl),datasets:[{data:cbs[c].map(x=>x.exp),backgroundColor:sc[0],borderRadius:3,barThickness:12}]},options:bo});});
+ g('cbys').innerHTML=cks.map(c=>`<div class="card"><h3 style="margin:0 0 8px">${c} · 命中 ${cbs[c].length} 策略</h3><div style="overflow-x:auto"><table><thead><tr><th style="text-align:left">策略</th><th>曝光uv</th><th>充值率</th><th>总收入</th></tr></thead><tbody>`+cbs[c].map(x=>`<tr><td style="text-align:left">${x.sl}</td><td>${int(x.exp)}</td><td>${x.rate}%</td><td>${usd(x.rev)}</td></tr>`).join('')+`</tbody></table></div></div>`).join('');
  renderStratTable();
 }
 const R={dash:renderDash,country:renderCountry,strategy:renderStrategy,weekly:renderWeekly,sdetail:renderSdetail};
