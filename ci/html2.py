@@ -383,7 +383,12 @@ const renderSiteDetail=makeFilterTable({rows:D.site_detail,cols:D.site_detail_co
 const renderCountryDetail=makeFilterTable({rows:D.detail,cols:D.detail_cols,cIdx:1,pIdx:2,countries:D.detail_countries,
  fmt:(v,i)=>i<3?v:(i===6?usd(v):i>=7?ltvf(v):int(v)),csv:'国家付费明细.csv',
  ids:{country:'f_country',paid:'f_paid',from:'f_from',to:'f_to',kw:'f_kw',reset:'f_reset',csv:'f_csv',count:'f_count',table:'t_detail'}});
-function wtbl(o){return '<div style="overflow-x:auto"><table><thead><tr>'+o.cols.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>'+o.rows.map(r=>'<tr>'+r.map((v,i)=>`<td${i===0?' style="text-align:left"':''}>${v}</td>`).join('')+'</tr>').join('')+'</tbody></table></div>';}
+function wcell(v){const s=String(v);
+ if(s.indexOf('→')>=0){const p=s.split('→');const a=parseFloat(p[0].replace(/[^0-9.\-]/g,'')),b=parseFloat(p[1].replace(/[^0-9.\-]/g,''));
+   if(!isNaN(a)&&!isNaN(b)&&a!==b) return `<span class="${b>a?'up':'dn'}">${s}</span>`; return s;}
+ const m=s.match(/^([+-])[\d.]/); if(m) return `<span class="${m[1]==='+'?'up':'dn'}">${s}</span>`;
+ return s;}
+function wtbl(o){return '<div style="overflow-x:auto"><table><thead><tr>'+o.cols.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>'+o.rows.map(r=>'<tr>'+r.map((v,i)=>`<td${i===0?' style="text-align:left"':''}>${i===0?v:wcell(v)}</td>`).join('')+'</tr>').join('')+'</tbody></table></div>';}
 function drawWeek(){
  const w=WR.weeks[+g('wk_sel').value||0]; if(!w){g('wk_body').innerHTML='<div class="card">暂无周报数据</div>';return;}
  let h='';
