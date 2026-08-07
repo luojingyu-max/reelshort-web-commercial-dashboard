@@ -27,6 +27,7 @@ jobs:
         working-directory: ci
         env:
           DASH_PW: ${{ secrets.DASH_PW }}
+          UPLOAD_TOKEN: ${{ secrets.UPLOAD_TOKEN }}
         run: |
           node dataenc.mjs decrypt-all      # ci/data/*.enc + strategy.json.enc -> 明文(仅 runner 内,不提交)
           python ci_build_payload.py

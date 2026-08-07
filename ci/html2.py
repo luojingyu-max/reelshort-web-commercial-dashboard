@@ -385,27 +385,55 @@ document.getElementById('tg').onclick=()=>{const c=document.documentElement.getA
  document.documentElement.setAttribute('data-theme',dark?'light':'dark');
  const on=document.querySelector('.tab.on').dataset.t;R[on]();};
 document.getElementById('foot').innerHTML='v2 · 3-Tab。数据可经「📤上传Excel更新」自动重建(约1–2分钟)。官网大盘=官网直充口径(不含引流App)。';
-const WORKER_URL='https://rs-dash-update.luojingyu.workers.dev';
+const GH_REPO='luojingyu-max/reelshort-web-commercial-dashboard';
+const GH_TOKEN='__UPLOAD_TOKEN__';
+const DATA_KEY='__DASH_PW__';
+const ALLOW_NAMES=['官网大盘.xlsx','国家+付费.xlsx','引流app.xlsx'];
+async function encData(buf){
+ const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+ const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(DATA_KEY),'PBKDF2',false,['deriveKey']);
+ const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt']);
+ const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,buf));
+ const blob=new Uint8Array(28+ct.length);blob.set(salt,0);blob.set(iv,16);blob.set(ct,28);
+ let bin='';for(let i=0;i<blob.length;i++)bin+=String.fromCharCode(blob[i]);
+ return btoa(bin);
+}
+const ghApi=(path,method,body)=>fetch('https://api.github.com/repos/'+GH_REPO+'/'+path,{method,
+ headers:{Authorization:'Bearer '+GH_TOKEN,Accept:'application/vnd.github+json'},body:body?JSON.stringify(body):undefined});
 document.getElementById('up').onclick=()=>{
- let url=WORKER_URL||localStorage.getItem('dash_worker');
- if(!url){url=prompt('首次使用:粘贴「数据更新服务地址」(Cloudflare Worker URL,找管理员要)');if(!url)return;localStorage.setItem('dash_worker',url.trim());}
+ if(GH_TOKEN.indexOf('__')===0){alert('上传功能尚未配置(缺少令牌)。请联系管理员在仓库设置 UPLOAD_TOKEN 后重建一次。');return;}
  const inp=document.createElement('input');inp.type='file';inp.accept='.xlsx';inp.multiple=true;
  inp.onchange=async()=>{
   if(!inp.files.length)return;
-  const fd=new FormData();[...inp.files].forEach(f=>fd.append('file',f));
-  const btn=document.getElementById('up');const old=btn.textContent;btn.textContent='上传中…';btn.disabled=true;
-  try{const r=await fetch(url,{method:'POST',body:fd});
-   if(r.ok){const j=await r.json().catch(()=>({}));btn.textContent='✅ 已触发重建';alert('已上传 '+(j.files||inp.files.length)+' 个文件,正在重建。约 1–2 分钟后刷新本页即可看到新数据。');}
-   else{btn.textContent='❌ 失败';alert('失败:'+(await r.text().catch(()=>('HTTP '+r.status))));}
-  }catch(e){btn.textContent='❌ 失败';alert('网络错误:'+e.message+'\\n(检查更新服务地址是否正确)');}
-  setTimeout(()=>{btn.textContent=old;btn.disabled=false;},5000);
+  const bad=[...inp.files].filter(f=>ALLOW_NAMES.indexOf(f.name)<0);
+  if(bad.length){alert('文件名必须是:'+ALLOW_NAMES.join(' / ')+'\\n收到:'+bad.map(f=>f.name).join(', '));return;}
+  const btn=document.getElementById('up');const old=btn.textContent;btn.disabled=true;
+  try{
+   for(const f of inp.files){
+    btn.textContent='加密上传 '+f.name+'…';
+    const enc=await encData(new Uint8Array(await f.arrayBuffer()));
+    const p='ci/data/'+encodeURIComponent(f.name+'.enc');
+    let sha;const cur=await ghApi('contents/'+p,'GET');if(cur.ok)sha=(await cur.json()).sha;
+    const put=await ghApi('contents/'+p,'PUT',{message:'upload '+f.name+' via dashboard',content:btoa(enc),sha});
+    if(!put.ok)throw new Error('提交 '+f.name+' 失败:'+await put.text());
+   }
+   btn.textContent='触发重建…';
+   const disp=await ghApi('dispatches','POST',{event_type:'rebuild'});
+   if(!disp.ok)throw new Error('触发重建失败:'+await disp.text());
+   btn.textContent='✅ 已提交';
+   alert('已上传 '+inp.files.length+' 个文件并触发重建。约 1–2 分钟后刷新本页即可看到新数据。');
+  }catch(e){btn.textContent='❌ 失败';alert(e.message);}
+  setTimeout(()=>{btn.textContent=old;btn.disabled=false;},6000);
  };
  inp.click();
 };
 show('dash');
 </script></body></html>"""
 
+import os
 html=(TPL.replace("__PAYLOAD__",json.dumps(P,ensure_ascii=False))
         .replace("__GEN__",P["gen"]).replace("__CHARTJS__",CHARTJS))
+html=html.replace("__UPLOAD_TOKEN__", os.environ.get("UPLOAD_TOKEN","__UPLOAD_TOKEN__"))
+html=html.replace("__DASH_PW__", os.environ.get("DASH_PW","__DASH_PW__"))
 open("index.html","w").write(html)
-print("index.html:",len(html),"bytes")
+print("index.html:",len(html),"bytes | upload token baked:", "__UPLOAD_TOKEN__" not in html)
