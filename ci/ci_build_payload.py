@@ -173,12 +173,28 @@ site_detail=[[d,round(site[d]["dau"]),round(site[d]["uv"]),round(site[d]["sub"])
               round(site[d]["ltv"][0],4),round(site[d]["ltv"][7],4),round(site[d]["ltv"][14],4),round(site[d]["ltv"][30],4)] for d in dates]
 
 strat=json.load(open("strategy.json"))
+# 一期加入韩国、泰国(6.18 上架·注册国家):文档表2只有11国,韩/泰按同结构从种子算(前6.03-6.16/后6.18-7.01)
+def p1row(c):
+    def sg(w):
+        rs=[x for x in seed_cp if x["c"]==c and w[0]<=x["d"]<=w[1]]
+        days=len(set(x["d"] for x in rs)) or 1; wt=sum(x["dau"] for x in rs) or 1
+        da=sum(x["dau"] for x in rs)/days; uv=sum(x["uv"] for x in rs)/days; sb=sum(x["sub"] for x in rs)/days; rv=sum(x["rev"] for x in rs)/days
+        return da,uv,sb,rv,(lambda k: sum(x["ltv"][k]*x["dau"] for x in rs)/wt)
+    da,ua,sa,ra,La=sg(("2026-06-03","2026-06-16")); db,ub,sb2,rb,Lb=sg(("2026-06-18","2026-07-01"))
+    pr=lambda u,d: round(u/d*100,3) if d else 0
+    chg=lambda a,b: ("+" if b>=a else "")+(f"{(b-a)/a*100:.0f}%" if a else "N/A")
+    return [c, round(da), round(db), pr(ua,da), pr(ub,db), pr(sa,da), pr(sb2,db),
+            round(ua,1), round(ub,1), round(ra/ua,1) if ua else 0, round(rb/ub,1) if ub else 0,
+            round(ra), round(rb), chg(ra,rb),
+            round(La(0),3), round(Lb(0),3), round(La(7),3), round(Lb(7),3),
+            round(La(14),3), round(Lb(14),3), round(La(30),3), round(Lb(30),3), chg(La(30),Lb(30))]
+panel1=strat["panel1"]+[p1row("韩国"), p1row("泰国")]
 P={"gen":dates[-1],"dates":dates,"dau":dau,"rev":rev,"payrate":payrate,"subrate":subrate,"arppu":arppu,
    "chargeuv":chargeuv,"subuv":subuv,"ltv":ltv,"ltv_date":ltv_date,
    "kpi":{"dau":kpi(dau),"payrate":kpi(payrate),"arppu":kpi(arppu),"rev":kpi(rev),"ltv30":ltv[30],"rev30":rev30},
    "app":app,"ov_dates":ov_dates,"ov_site":ov_site,"ov_app":ov_app,
    "targets":targets,"cur_month":cur_month,"mtd":round(mtd),"target_cur":target_cur,"dash_mom":dash_mom,
-   "ctab":ctab,"cwindows":cwindows,"panel1":strat["panel1"],"panel1_header":strat["panel1_header"],
+   "ctab":ctab,"cwindows":cwindows,"panel1":panel1,"panel1_header":strat["panel1_header"],
    "phase2_unpaid":phase2_unpaid,"phase2_paid":phase2_paid,"strategy":strat["strategy"],"strategy_header":strat["strategy_header"],
    "country_ltv":country_ltv,"country_ltv_table":country_ltv_table,"phase2_ltv":phase2_ltv,
    "detail":detail,"detail_cols":detail_cols,"detail_countries":countries,
