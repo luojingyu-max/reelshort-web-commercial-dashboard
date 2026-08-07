@@ -37,5 +37,5 @@ const [, , mode, a, b] = process.argv;
 if (mode === "encrypt") await encFile(a, b);
 else if (mode === "decrypt-all") {
   for (const f of fs.readdirSync("data")) if (f.endsWith(".enc")) await decFile(`data/${f}`, `data/${f.slice(0, -4)}`);
-  if (fs.existsSync("strategy.json.enc")) await decFile("strategy.json.enc", "strategy.json");
+  for (const f of fs.readdirSync(".")) if (f.endsWith(".json.enc")) await decFile(f, f.slice(0, -4));
 } else { console.error("mode?"); process.exit(1); }

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
+import os as _os
 P = json.load(open("payload2.json"))
 CHARTJS = open("chartjs.min.js").read()
+WEEKLY = open("weekly_report.json", encoding="utf-8").read() if _os.path.exists("weekly_report.json") else '{"weeks":[]}'
 
 TPL = r"""<!doctype html><html lang="zh" class=""><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -76,6 +78,7 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
  <button class="tab on" data-t="dash">大盘</button>
  <button class="tab" data-t="country">国家</button>
  <button class="tab" data-t="strategy">面板策略</button>
+ <button class="tab" data-t="weekly">周报</button>
 </div>
 
 <section class="panel on" id="p-dash">
@@ -175,10 +178,17 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
  <details><summary>策略定义明细(表1 · 面板策略记录)</summary><div style="overflow-x:auto;margin-top:10px"><table id="t_strat"></table></div></details>
 </section>
 
+<section class="panel" id="p-weekly">
+ <h2>产运周报 · 官网+社媒(按周查看)</h2>
+ <div class="card"><div class="filters"><label>选择周 <select id="wk_sel"></select></label><span class="badge" id="wk_src"></span></div></div>
+ <div id="wk_body"></div>
+</section>
+
 <footer id="foot"></footer>
 </div>
 <script>
 const D=__PAYLOAD__;
+const WR=__WEEKLY__;
 const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const SC=()=>['--s1','--s2','--s3','--s4','--s5','--s6'].map(css);
 const usd=n=>n==null?'—':'$'+Math.round(n).toLocaleString();
@@ -373,7 +383,24 @@ const renderSiteDetail=makeFilterTable({rows:D.site_detail,cols:D.site_detail_co
 const renderCountryDetail=makeFilterTable({rows:D.detail,cols:D.detail_cols,cIdx:1,pIdx:2,countries:D.detail_countries,
  fmt:(v,i)=>i<3?v:(i===6?usd(v):i>=7?ltvf(v):int(v)),csv:'国家付费明细.csv',
  ids:{country:'f_country',paid:'f_paid',from:'f_from',to:'f_to',kw:'f_kw',reset:'f_reset',csv:'f_csv',count:'f_count',table:'t_detail'}});
-const R={dash:renderDash,country:renderCountry,strategy:renderStrategy};
+function wtbl(o){return '<div style="overflow-x:auto"><table><thead><tr>'+o.cols.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>'+o.rows.map(r=>'<tr>'+r.map((v,i)=>`<td${i===0?' style="text-align:left"':''}>${v}</td>`).join('')+'</tr>').join('')+'</tbody></table></div>';}
+function drawWeek(){
+ const w=WR.weeks[+g('wk_sel').value||0]; if(!w){g('wk_body').innerHTML='<div class="card">暂无周报数据</div>';return;}
+ let h='';
+ if(w.summary&&w.summary.length) h+='<div class="card"><h3>本周摘要</h3><div class="concl">'+w.summary.map(s=>'• '+s).join('<br>')+'</div></div>';
+ if(w.dapan) h+='<div class="card" style="margin-top:12px"><h3>大盘数据回收</h3>'+wtbl(w.dapan)+'</div>';
+ if(w.phase2) h+='<div class="card" style="margin-top:12px"><h3>二期面板策略数据回收</h3><p class="cap">'+(w.phase2.note||'')+'</p>'+wtbl(w.phase2)+'</div>';
+ if(w.concl&&w.concl.length) h+='<div class="card" style="margin-top:12px"><h3>结论与现状</h3><div class="concl">'+w.concl.map(s=>'• '+s).join('<br>')+'</div></div>';
+ h+='<div class="card" style="margin-top:12px"><h3>社媒</h3><div class="concl">'+(w.social||'暂无数据')+'</div></div>';
+ g('wk_body').innerHTML=h;
+}
+function renderWeekly(){
+ const sel=g('wk_sel');
+ if(!sel.dataset.init){ sel.innerHTML=(WR.weeks||[]).map((w,i)=>`<option value="${i}">${w.date}</option>`).join(''); sel.addEventListener('change',drawWeek); sel.dataset.init='1'; }
+ g('wk_src').textContent=WR.source||'';
+ drawWeek();
+}
+const R={dash:renderDash,country:renderCountry,strategy:renderStrategy,weekly:renderWeekly};
 function show(t){
  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));
@@ -438,7 +465,7 @@ show('dash');
 
 import os
 html=(TPL.replace("__PAYLOAD__",json.dumps(P,ensure_ascii=False))
-        .replace("__GEN__",P["gen"]).replace("__CHARTJS__",CHARTJS))
+        .replace("__GEN__",P["gen"]).replace("__WEEKLY__",WEEKLY).replace("__CHARTJS__",CHARTJS))
 html=html.replace("__UPLOAD_TOKEN__", os.environ.get("UPLOAD_TOKEN","__UPLOAD_TOKEN__"))
 html=html.replace("__DASH_PW__", os.environ.get("DASH_PW","__DASH_PW__"))
 open("index.html","w").write(html)
