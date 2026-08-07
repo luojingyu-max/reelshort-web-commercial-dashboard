@@ -116,8 +116,8 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
 <section class="panel" id="p-country">
  <div class="warnbox" id="cwin-note"></div>
  <div class="grid2">
-  <div class="card"><h3>各国收入(已付费 vs 未付费)</h3><p class="cap">本月至今 $ · 堆叠</p><div class="cwrap"><canvas id="c_cstack"></canvas></div></div>
-  <div class="card"><h3>收入月环比 MoM</h3><p class="cap">本月至今 vs 上月同期 · %</p><div class="cwrap"><canvas id="c_mom"></canvas></div></div>
+  <div class="card"><h3>收入 Top10 国家(已付费 vs 未付费)</h3><p class="cap">本月至今 $ · 堆叠 · 按收入前10</p><div class="cwrap"><canvas id="c_cstack"></canvas></div></div>
+  <div class="card"><h3>收入 Top10 · 月环比 MoM</h3><p class="cap">本月至今 vs 上月同期 · % · 收入前10国</p><div class="cwrap"><canvas id="c_mom"></canvas></div></div>
  </div>
  <h2>各国 KPI 明细(带月/周环比)</h2>
  <div class="card"><div style="overflow-x:auto"><table id="t_ctab"></table></div></div>
@@ -260,14 +260,14 @@ function renderDash(){
  renderSiteDetail();
 }
 function renderCountry(){
- const sc=SC(),ct=D.ctab;
- let os=base();os.scales.x.stacked=true;os.scales.y.stacked=true;os.scales.x.ticks.autoSkip=false;os.scales.x.ticks.maxRotation=50;os.scales.x.ticks.minRotation=50;
- mk('c_cstack',{type:'bar',data:{labels:ct.map(c=>c.c),datasets:[
-   {label:'已付费',data:ct.map(c=>c.rev_paid),backgroundColor:sc[0],borderRadius:3,stack:'s'},
-   {label:'未付费',data:ct.map(c=>c.rev_unpaid),backgroundColor:sc[3],borderRadius:3,stack:'s'}]},options:os});
- let om=base();om.plugins.legend.display=false;om.scales.x.ticks.autoSkip=false;om.scales.x.ticks.maxRotation=50;om.scales.x.ticks.minRotation=50;
- mk('c_mom',{type:'bar',data:{labels:ct.map(c=>c.c),datasets:[{data:ct.map(c=>c.rev_mom),
-   backgroundColor:ct.map(c=>c.rev_mom>=0?css('--s3'):css('--s2')),borderRadius:3}]},options:om});
+ const sc=SC(),ct=D.ctab,top=ct.slice(0,10);
+ let os=base();os.scales.x.stacked=true;os.scales.y.stacked=true;os.scales.x.ticks.autoSkip=false;os.scales.x.ticks.maxRotation=45;os.scales.x.ticks.minRotation=45;
+ mk('c_cstack',{type:'bar',data:{labels:top.map(c=>c.c),datasets:[
+   {label:'已付费',data:top.map(c=>c.rev_paid),backgroundColor:sc[0],borderRadius:3,stack:'s'},
+   {label:'未付费',data:top.map(c=>c.rev_unpaid),backgroundColor:sc[3],borderRadius:3,stack:'s'}]},options:os});
+ let om=base();om.plugins.legend.display=false;om.scales.x.ticks.autoSkip=false;om.scales.x.ticks.maxRotation=45;om.scales.x.ticks.minRotation=45;
+ mk('c_mom',{type:'bar',data:{labels:top.map(c=>c.c),datasets:[{data:top.map(c=>c.rev_mom),
+   backgroundColor:top.map(c=>c.rev_mom>=0?css('--s3'):css('--s2')),borderRadius:3}]},options:om});
  const w=D.cwindows;
  document.getElementById('cwin-note').innerHTML=`月环比 = 本月至今 <b>${w.month[0]}~${w.month[1]}</b> vs 上月同期 <b>${w.lastmonth[0]}~${w.lastmonth[1]}</b> · 周环比 = <b>${w.week[0]}~${w.week[1]}</b> vs <b>${w.pastweek[0]}~${w.pastweek[1]}</b>。收入区分已付费/未付费。`;
  document.getElementById('t_ctab').innerHTML=
