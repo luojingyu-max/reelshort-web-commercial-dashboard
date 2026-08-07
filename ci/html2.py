@@ -400,30 +400,36 @@ async function encData(buf){
 }
 const ghApi=(path,method,body)=>fetch('https://api.github.com/repos/'+GH_REPO+'/'+path,{method,
  headers:{Authorization:'Bearer '+GH_TOKEN,Accept:'application/vnd.github+json'},body:body?JSON.stringify(body):undefined});
+function toast(msg,err){let t=document.getElementById('uptoast');
+ if(!t){t=document.createElement('div');t.id='uptoast';
+  t.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:99999;max-width:82vw;padding:12px 18px;border-radius:10px;font-size:14px;color:#fff;box-shadow:0 8px 30px rgba(0,0,0,.45);white-space:pre-wrap;line-height:1.5';
+  document.body.appendChild(t);}
+ t.style.background=err?'#c0392b':'#1a1a19';t.textContent=msg;t.style.display='block';
+ clearTimeout(t._h);t._h=setTimeout(()=>{t.style.display='none';},err?15000:8000);}
 document.getElementById('up').onclick=()=>{
- if(GH_TOKEN.indexOf('__')===0){alert('上传功能尚未配置(缺少令牌)。请联系管理员在仓库设置 UPLOAD_TOKEN 后重建一次。');return;}
+ if(GH_TOKEN.indexOf('__')===0){toast('上传功能尚未配置(缺令牌),请联系管理员。',true);return;}
  const inp=document.createElement('input');inp.type='file';inp.accept='.xlsx';inp.multiple=true;
+ inp.style.display='none';document.body.appendChild(inp);
  inp.onchange=async()=>{
-  if(!inp.files.length)return;
-  const bad=[...inp.files].filter(f=>ALLOW_NAMES.indexOf(f.name)<0);
-  if(bad.length){alert('文件名必须是:'+ALLOW_NAMES.join(' / ')+'\\n收到:'+bad.map(f=>f.name).join(', '));return;}
-  const btn=document.getElementById('up');const old=btn.textContent;btn.disabled=true;
   try{
-   for(const f of inp.files){
-    btn.textContent='加密上传 '+f.name+'…';
+   const files=[...inp.files];
+   if(!files.length)return;
+   const bad=files.filter(f=>ALLOW_NAMES.indexOf(f.name)<0);
+   if(bad.length){toast('文件名必须是: '+ALLOW_NAMES.join(' / ')+'\\n收到: '+bad.map(f=>f.name).join(', '),true);return;}
+   for(const f of files){
+    toast('加密并上传 '+f.name+' …');
     const enc=await encData(new Uint8Array(await f.arrayBuffer()));
     const p='ci/data/'+encodeURIComponent(f.name+'.enc');
     let sha;const cur=await ghApi('contents/'+p,'GET');if(cur.ok)sha=(await cur.json()).sha;
     const put=await ghApi('contents/'+p,'PUT',{message:'upload '+f.name+' via dashboard',content:btoa(enc),sha});
-    if(!put.ok)throw new Error('提交 '+f.name+' 失败:'+await put.text());
+    if(!put.ok)throw new Error('提交 '+f.name+' 失败 (HTTP '+put.status+'): '+(await put.text()).slice(0,300));
    }
-   btn.textContent='触发重建…';
+   toast('触发重建…');
    const disp=await ghApi('dispatches','POST',{event_type:'rebuild'});
-   if(!disp.ok)throw new Error('触发重建失败:'+await disp.text());
-   btn.textContent='✅ 已提交';
-   alert('已上传 '+inp.files.length+' 个文件并触发重建。约 1–2 分钟后刷新本页即可看到新数据。');
-  }catch(e){btn.textContent='❌ 失败';alert(e.message);}
-  setTimeout(()=>{btn.textContent=old;btn.disabled=false;},6000);
+   if(!disp.ok)throw new Error('触发重建失败 (HTTP '+disp.status+'): '+(await disp.text()).slice(0,300));
+   toast('✅ 已上传 '+files.length+' 个文件并触发重建。约 1–2 分钟后刷新本页看新数据。');
+  }catch(e){console.error(e);toast('❌ '+(e&&e.message||e),true);}
+  finally{inp.remove();}
  };
  inp.click();
 };
