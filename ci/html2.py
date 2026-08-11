@@ -213,11 +213,9 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
 
 <section class="panel" id="p-sku">
  <h2>主力 SKU 收入日曲线 · 金币 vs 订阅</h2>
- <p class="sub" style="margin:-6px 0 12px">各取 Top6 SKU 的每日收入($),按商品类型分两图;虚线节点:<b>6.17 一期</b> / <b>7.17 二期</b> / <b>8.7 三期AB</b>。数据源:SKU 交叉表(6/1–8/9)。</p>
- <div class="grid2" style="margin-bottom:12px">
-  <div class="card"><h3>金币 · Top6 SKU</h3><div class="cwrap" style="height:340px"><canvas id="c_sku_coin"></canvas></div></div>
-  <div class="card"><h3>订阅 · Top6 SKU</h3><div class="cwrap" style="height:340px"><canvas id="c_sku_sub"></canvas></div></div>
- </div>
+ <p class="sub" style="margin:-6px 0 12px">各取 Top6 SKU 的每日收入($),按商品类型分两图;虚线节点:<b>6.17 一期</b> / <b>7.17 二期</b> / <b>8.8 三期(改未付费金币档位)</b>。数据源:SKU 交叉表(6/1–8/9)。</p>
+ <div class="card" style="margin-bottom:12px"><h3>金币 · Top6 SKU</h3><div class="cwrap" style="height:360px"><canvas id="c_sku_coin"></canvas></div></div>
+ <div class="card" style="margin-bottom:12px"><h3>订阅 · Top6 SKU</h3><div class="cwrap" style="height:360px"><canvas id="c_sku_sub"></canvas></div></div>
  <div class="card"><h3>金币 vs 订阅 · 各阶段日均收入对比</h3><div style="overflow-x:auto"><table id="t_ksum"></table></div>
   <p class="cap" id="sku_concl" style="line-height:1.7;margin-top:10px"></p></div>
  <h2>SKU 全量明细</h2>
@@ -492,7 +490,7 @@ function renderSku(){
  const su=D.sku_summary||{wins:[],rows:[]}; const pc=(c,p)=>p?((c-p)/p*100>=0?'+':'')+((c-p)/p*100).toFixed(0)+'%':'—';
  g('t_ksum').innerHTML='<thead><tr><th style="text-align:left">类型 · 日均收入</th>'+su.wins.map(w=>`<th>${w}</th>`).join('')+'</tr></thead><tbody>'+
   su.rows.map(r=>'<tr><td style="text-align:left"><b>'+r.k+'</b></td>'+r.vals.map((v,i)=>`<td>${usd(v)}${i>0?' <span class="cap">('+pc(v,r.vals[i-1])+')</span>':''}</td>`).join('')+'</tr>').join('')+'</tbody>';
- g('sku_concl').innerHTML='<b>趋势小结:</b>订阅是增长引擎,一期→二期→三期AB 每个节点日均收入连续抬升($5.0k→6.4k→7.5k→8.5k);金币在一期(+25%)、三期AB(+26%)明显放量,二期(未付费/已付费分层)期间反而微降(−5%),说明二期主要拉动的是订阅、金币被相对弱化,三期AB 把金币重新带起来。';
+ g('sku_concl').innerHTML='<b>趋势小结:</b>订阅是主引擎——一期→二期日均收入 $5.0k→6.4k→7.6k,每次策略都有效;三期8.8 订阅仅 +5%($8.0k)。金币:一期 +25%、二期(未付费/已付费分层)反而微降 −5%,<b>三期8.8 改了未付费金币档位后,金币 +43%(1012→1450/日)</b>——针对性改档直接把金币拉起来,符合预期。<b>注意:</b>8.8 窗口仅 8/08–09 两天、样本小;针对性 AB 昨天(8/10)才开,数据尚未更新到看板(数据止 8/09),三期完整效果待后续数据确认。';
  renderSkuTable();
 }
 const R={dash:renderDash,country:renderCountry,strategy:renderStrategy,weekly:renderWeekly,sdetail:renderSdetail,sku:renderSku};

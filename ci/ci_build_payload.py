@@ -235,9 +235,9 @@ if _os.path.exists(_skf):
     def _win(d):
         if d<'2026-06-17': return 'w0'
         if d<='2026-07-16': return 'w1'
-        if d<='2026-08-06': return 'w2'
+        if d<='2026-08-07': return 'w2'
         return 'w3'
-    _wd={'w0':16,'w1':30,'w2':21,'w3':3}; _sm=defaultdict(lambda:defaultdict(float))
+    _wd={'w0':16,'w1':30,'w2':22,'w3':2}; _sm=defaultdict(lambda:defaultdict(float))
     for r in ws(_skf).iter_rows(min_row=2, values_only=True):
         d=s2d(r[0])
         if not d or not r[1] or not re.match(r'2026-\d\d-\d\d',d): continue
@@ -257,8 +257,8 @@ if _os.path.exists(_skf):
     sku_sub=[{"name":k,"data":[round(sk_s[k].get(d,0),2) for d in sku_dates]} for k in _ts]
     sku_detail.sort(key=lambda x:(x[0], -x[14]))
     sku_list=sorted(set(list(tc)+list(ts)))
-    sku_nodes=[{"date":"2026-06-17","label":"6.17 一期"},{"date":"2026-07-17","label":"7.17 二期"},{"date":"2026-08-07","label":"8.7 三期AB"}]
-    sku_summary={"wins":["一期前","一期6.17","二期7.17","三期AB8.7"],
+    sku_nodes=[{"date":"2026-06-17","label":"6.17 一期"},{"date":"2026-07-17","label":"7.17 二期"},{"date":"2026-08-08","label":"8.8 三期改金币档"}]
+    sku_summary={"wins":["一期前","一期6.17","二期7.17","三期8.8"],
         "rows":[{"k":k,"vals":[round(_sm[k][w]/_wd[w]) for w in ['w0','w1','w2','w3']]} for k in ['金币','订阅']]}
 sku_detail_cols=["日期","SKU","类型","价格$","充值uv","金币充值uv","订阅uv","首订uv","续订uv","充值收入","金币充值收入","订阅收入","首订收入","续订收入","总收入"]
 
