@@ -225,27 +225,42 @@ strat_detail_cols=["日期","付费状态","策略","注册国家","曝光pv","�
 strat_list=sorted(sset)
 strat_rev=sorted([{"s":k,"paid":round(v["p"],2),"unpaid":round(v["u"],2),"total":v["p"]+v["u"]} for k,v in srev.items()], key=lambda x:-x["total"])[:12]
 
-# ---------- SKU 趋势(SKU交叉表 6/1-8/9,日期×SKU×价格) ----------
+# ---------- SKU 趋势(SKU交叉表 6/1-8/9,日期×SKU×价格×商品类型)· 金币 vs 订阅 ----------
 import os as _os
-sku_dates=[]; sku_series=[]; sku_detail=[]; sku_list=[]; sku_nodes=[]
+sku_dates=[]; sku_coin=[]; sku_sub=[]; sku_detail=[]; sku_list=[]; sku_nodes=[]; sku_summary={}
 _skf=f"{D}/SKU交叉表.xlsx"
 if _os.path.exists(_skf):
-    sk_day=defaultdict(lambda:defaultdict(float)); sk_tot=defaultdict(float); _ds=set()
+    sk_c=defaultdict(lambda:defaultdict(float)); sk_s=defaultdict(lambda:defaultdict(float))
+    tc=defaultdict(float); ts=defaultdict(float); _ds=set()
+    def _win(d):
+        if d<'2026-06-17': return 'w0'
+        if d<='2026-07-16': return 'w1'
+        if d<='2026-08-06': return 'w2'
+        return 'w3'
+    _wd={'w0':16,'w1':30,'w2':21,'w3':3}; _sm=defaultdict(lambda:defaultdict(float))
     for r in ws(_skf).iter_rows(min_row=2, values_only=True):
         d=s2d(r[0])
         if not d or not r[1] or not re.match(r'2026-\d\d-\d\d',d): continue
-        nm=str(r[1]).strip(); _ds.add(d)
-        _rv=num(r[14]); sk_day[nm][d]+=_rv; sk_tot[nm]+=_rv
-        sku_detail.append([d,nm,round(num(r[2])/100,2),round(num(r[4])),round(num(r[5])),round(num(r[6])),
+        nm=str(r[1]).strip(); t4=str(r[3]); _ds.add(d)
+        coin=t4.startswith('0'); typ='金币' if coin else ('订阅续订' if t4.startswith('2') else '订阅首购')
+        _rv=num(r[14])
+        if coin: sk_c[nm][d]+=_rv; tc[nm]+=_rv
+        else: sk_s[nm][d]+=_rv; ts[nm]+=_rv
+        _sm['金币' if coin else '订阅'][_win(d)]+=_rv
+        sku_detail.append([d,nm,typ,round(num(r[2])/100,2),round(num(r[4])),round(num(r[5])),round(num(r[6])),
             round(num(r[7])),round(num(r[8])),round(num(r[9]),2),round(num(r[10]),2),round(num(r[11]),2),
             round(num(r[12]),2),round(num(r[13]),2),round(num(r[14]),2)])
     sku_dates=sorted(_ds)
-    _top=[k for k,_ in sorted(sk_tot.items(), key=lambda kv:-kv[1])[:6]]
-    sku_series=[{"name":k,"data":[round(sk_day[k].get(d,0),2) for d in sku_dates]} for k in _top]
-    sku_detail.sort(key=lambda x:(x[0], -x[13]))
-    sku_list=sorted(sk_tot.keys())
-    sku_nodes=[{"date":"2026-07-17","label":"7.17 二期分层"},{"date":"2026-08-07","label":"8.7 改版"}]
-sku_detail_cols=["日期","SKU","价格$","充值uv","金币充值uv","订阅uv","首订uv","续订uv","充值收入","金币充值收入","订阅收入","首订收入","续订收入","总收入"]
+    _tc=[k for k,_ in sorted(tc.items(), key=lambda kv:-kv[1])[:6]]
+    _ts=[k for k,_ in sorted(ts.items(), key=lambda kv:-kv[1])[:6]]
+    sku_coin=[{"name":k,"data":[round(sk_c[k].get(d,0),2) for d in sku_dates]} for k in _tc]
+    sku_sub=[{"name":k,"data":[round(sk_s[k].get(d,0),2) for d in sku_dates]} for k in _ts]
+    sku_detail.sort(key=lambda x:(x[0], -x[14]))
+    sku_list=sorted(set(list(tc)+list(ts)))
+    sku_nodes=[{"date":"2026-06-17","label":"6.17 一期"},{"date":"2026-07-17","label":"7.17 二期"},{"date":"2026-08-07","label":"8.7 三期AB"}]
+    sku_summary={"wins":["一期前","一期6.17","二期7.17","三期AB8.7"],
+        "rows":[{"k":k,"vals":[round(_sm[k][w]/_wd[w]) for w in ['w0','w1','w2','w3']]} for k in ['金币','订阅']]}
+sku_detail_cols=["日期","SKU","类型","价格$","充值uv","金币充值uv","订阅uv","首订uv","续订uv","充值收入","金币充值收入","订阅收入","首订收入","续订收入","总收入"]
 
 P={"gen":dates[-1],"dates":dates,"dau":dau,"rev":rev,"payrate":payrate,"subrate":subrate,"arppu":arppu,
    "chargeuv":chargeuv,"subuv":subuv,"ltv":ltv,"ltv_date":ltv_date,
@@ -259,7 +274,7 @@ P={"gen":dates[-1],"dates":dates,"dau":dau,"rev":rev,"payrate":payrate,"subrate"
    "site_detail_cols":sd_cols,"site_detail":site_detail,
    "strat_detail":sd_rows,"strat_detail_cols":strat_detail_cols,"strat_list":strat_list,"strat_rev":strat_rev,
    "strat_by_country":strat_by_country,"strat_bubble":strat_bubble,
-   "sku_dates":sku_dates,"sku_series":sku_series,"sku_nodes":sku_nodes,
+   "sku_dates":sku_dates,"sku_coin":sku_coin,"sku_sub":sku_sub,"sku_nodes":sku_nodes,"sku_summary":sku_summary,
    "sku_detail":sku_detail,"sku_detail_cols":sku_detail_cols,"sku_list":sku_list}
 json.dump(P,open("payload2.json","w"),ensure_ascii=False)
 print("built: site",dates[0],"->",dates[-1],"(",len(dates),"d) | latest DAU",dau[-1],"| 7月rev",round(sum(v for dd,v in zip(dates,rev) if dd[:7]=='2026-07')),
