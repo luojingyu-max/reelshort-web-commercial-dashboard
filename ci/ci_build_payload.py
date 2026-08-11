@@ -78,20 +78,23 @@ rev30=sum(v for v in rev[-30:] if v)
 
 # ---------- 官网 vs 引流(收入明细·按国家聚合;直接取总收入列,缺失回退金币+订阅+广告) ----------
 inc_site={}; inc_app={}
-_rraw=defaultdict(lambda:{"s":0.0,"a":0.0,"sr":0.0,"ar":0.0})
+_rraw=defaultdict(lambda:{"s":0.0,"a":0.0,"sr":0.0,"ar":0.0,"apu":0.0,"asu":0.0,"aad":0.0})
 for r in ws(f"{D}/收入明细.xlsx").iter_rows(min_row=2, values_only=True):
     d=s2d(r[0])
     if not d: continue
     r12=num(r[12]); t=r12 if r12>0 else num(r[8])+num(r[9])+num(r[13])
     if r[1]=="官网": _rraw[d]["s"]+=t; _rraw[d]["sr"]+=r12
-    elif r[1]=="官网引流APP": _rraw[d]["a"]+=t; _rraw[d]["ar"]+=r12
+    elif r[1]=="官网引流APP":
+        _rraw[d]["a"]+=t; _rraw[d]["ar"]+=r12
+        _rraw[d]["apu"]+=num(r[3]); _rraw[d]["asu"]+=num(r[5]); _rraw[d]["aad"]+=num(r[13])
 for d,v in _rraw.items():
     if v["sr"]<=0 and v["ar"]<=0: continue   # 当天总收入列整列未回填(如最新一天,BI 也显示"—"),跳过防止掉成低值
     inc_site[d]=round(v["s"],2); inc_app[d]=round(v["a"],2)
 ov_dates=[d for d in sorted(set(inc_site)|set(inc_app)) if d>="2026-06-01"]
 ov_site=[round(inc_site.get(d,0),2) for d in ov_dates]
 ov_app=[round(inc_app.get(d,0),2) for d in ov_dates]
-app=[{"date":d,"rev":round(inc_app.get(d,0),2),"charge":round(inc_app.get(d,0),2),"ad":0,"pay_uv":0,"sub_uv":0} for d in ov_dates]
+app=[{"date":d,"rev":round(inc_app.get(d,0),2),"charge":round(inc_app.get(d,0)-_rraw[d]["aad"],2),"ad":round(_rraw[d]["aad"],2),
+      "pay_uv":round(_rraw[d]["apu"]),"sub_uv":round(_rraw[d]["asu"])} for d in ov_dates]
 
 # ---------- targets / dash_mom (site) ----------
 targets={"2026-07":6*10000,"2026-08":8*10000,"2026-09":10*10000}
