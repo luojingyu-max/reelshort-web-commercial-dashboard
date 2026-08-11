@@ -80,6 +80,7 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
  <button class="tab" data-t="strategy">面板策略</button>
  <button class="tab" data-t="weekly">周报</button>
  <button class="tab" data-t="sdetail">面板策略明细</button>
+ <button class="tab" data-t="sku">SKU趋势</button>
 </div>
 
 <section class="panel on" id="p-dash">
@@ -207,6 +208,23 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
    <button class="fbtn" id="x_reset">重置</button><button class="fbtn" id="x_csv">导出CSV</button><span class="badge" id="x_count"></span>
   </div>
   <div style="overflow:auto;max-height:600px;margin-top:10px"><table id="t_xd"></table></div>
+ </div>
+</section>
+
+<section class="panel" id="p-sku">
+ <h2>主力 SKU 收入日曲线</h2>
+ <p class="sub" style="margin:-6px 0 12px">按总收入 Top6 SKU 的每日收入($),含 <b>7.17 二期分层</b> 与 <b>8.7 改版</b> 两个节点标注。数据源:SKU 交叉表(6/1–8/9)。</p>
+ <div class="card"><div class="cwrap" style="height:440px"><canvas id="c_sku"></canvas></div></div>
+ <h2>SKU 全量明细</h2>
+ <p class="sub" style="margin:-6px 0 12px">每个定价 SKU 的逐日充值/订阅/首订/续订/收入,可按 <b>SKU / 日期 / 关键词</b> 筛选、点表头排序、导出 CSV。</p>
+ <div class="card">
+  <div class="filters">
+   <label>SKU <select id="k_sku"></select></label>
+   <label>日期 <input type="date" id="k_from"></label><label>~ <input type="date" id="k_to"></label>
+   <input type="text" id="k_kw" placeholder="关键词(SKU/价格)"/>
+   <button class="fbtn" id="k_reset">重置</button><button class="fbtn" id="k_csv">导出CSV</button><span class="badge" id="k_count"></span>
+  </div>
+  <div style="overflow:auto;max-height:600px;margin-top:10px"><table id="t_kd"></table></div>
  </div>
 </section>
 
@@ -453,7 +471,18 @@ function renderSdetail(){
  g('cbys').innerHTML=cks.map(c=>`<div class="card"><h3 style="margin:0 0 8px">${c} · 命中 ${cbs[c].length} 策略</h3><div style="overflow-x:auto"><table><thead><tr><th style="text-align:left">策略</th><th>曝光uv</th><th>充值率</th><th>总收入</th></tr></thead><tbody>`+cbs[c].map(x=>`<tr><td style="text-align:left">${x.sl}</td><td>${int(x.exp)}</td><td>${x.rate}%</td><td>${usd(x.rev)}</td></tr>`).join('')+`</tbody></table></div></div>`).join('');
  renderStratTable();
 }
-const R={dash:renderDash,country:renderCountry,strategy:renderStrategy,weekly:renderWeekly,sdetail:renderSdetail};
+const renderSkuTable=makeFilterTable({rows:D.sku_detail,cols:D.sku_detail_cols,cIdx:1,pIdx:-1,countries:D.sku_list,selLabel:'全部SKU',kwCols:[1,2],
+ fmt:(v,i)=>i<=1?v:(i===2?('$'+v):(i<=7?int(v):usd(v))),csv:'SKU明细.csv',
+ ids:{country:'k_sku',from:'k_from',to:'k_to',kw:'k_kw',reset:'k_reset',csv:'k_csv',count:'k_count',table:'t_kd'}});
+function renderSku(){
+ const sc=SC(), series=D.sku_series||[], dts=D.sku_dates||[];
+ const nodes=(D.sku_nodes||[]).map(n=>({i:dts.indexOf(n.date),label:n.label})).filter(n=>n.i>=0);
+ const nodePlugin={id:'skunodes',afterDraw(ch){const a=ch.chartArea,x=ch.scales.x,ctx=ch.ctx;ctx.save();nodes.forEach(n=>{const px=x.getPixelForValue(n.i);ctx.strokeStyle=css('--axis');ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(px,a.top);ctx.lineTo(px,a.bottom);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=css('--ink2');ctx.font='11px system-ui';ctx.textAlign='center';ctx.fillText(n.label,px,a.top-4);});ctx.restore();}};
+ let o=base(); o.layout={padding:{top:16}}; o.scales.x.ticks.maxTicksLimit=12; o.scales.y.ticks.callback=v=>'$'+(v>=1000?(v/1000)+'k':v);
+ mk('c_sku',{type:'line',data:{labels:dts,datasets:series.map((s,i)=>L(s.data,sc[i%6],s.name.length>22?s.name.slice(0,22)+'…':s.name))},options:o,plugins:[nodePlugin]});
+ renderSkuTable();
+}
+const R={dash:renderDash,country:renderCountry,strategy:renderStrategy,weekly:renderWeekly,sdetail:renderSdetail,sku:renderSku};
 function show(t){
  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));

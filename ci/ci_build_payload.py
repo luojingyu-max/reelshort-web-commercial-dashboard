@@ -224,6 +224,29 @@ sd_rows.sort(key=lambda x:(x[0],x[2],x[1],x[3]))
 strat_detail_cols=["日期","付费状态","策略","注册国家","曝光pv","曝光uv","充值pv","充值uv","金币充值pv","金币充值uv","首订pv","首订uv","总收入","金币充值收入","首订收入","付费后播放uv"]
 strat_list=sorted(sset)
 strat_rev=sorted([{"s":k,"paid":round(v["p"],2),"unpaid":round(v["u"],2),"total":v["p"]+v["u"]} for k,v in srev.items()], key=lambda x:-x["total"])[:12]
+
+# ---------- SKU 趋势(SKU交叉表 6/1-8/9,日期×SKU×价格) ----------
+import os as _os
+sku_dates=[]; sku_series=[]; sku_detail=[]; sku_list=[]; sku_nodes=[]
+_skf=f"{D}/SKU交叉表.xlsx"
+if _os.path.exists(_skf):
+    sk_day=defaultdict(lambda:defaultdict(float)); sk_tot=defaultdict(float); _ds=set()
+    for r in ws(_skf).iter_rows(min_row=2, values_only=True):
+        d=s2d(r[0])
+        if not d or not r[1] or not re.match(r'2026-\d\d-\d\d',d): continue
+        nm=str(r[1]).strip(); _ds.add(d)
+        _rv=num(r[14]); sk_day[nm][d]+=_rv; sk_tot[nm]+=_rv
+        sku_detail.append([d,nm,round(num(r[2])/100,2),round(num(r[4])),round(num(r[5])),round(num(r[6])),
+            round(num(r[7])),round(num(r[8])),round(num(r[9]),2),round(num(r[10]),2),round(num(r[11]),2),
+            round(num(r[12]),2),round(num(r[13]),2),round(num(r[14]),2)])
+    sku_dates=sorted(_ds)
+    _top=[k for k,_ in sorted(sk_tot.items(), key=lambda kv:-kv[1])[:6]]
+    sku_series=[{"name":k,"data":[round(sk_day[k].get(d,0),2) for d in sku_dates]} for k in _top]
+    sku_detail.sort(key=lambda x:(x[0], -x[13]))
+    sku_list=sorted(sk_tot.keys())
+    sku_nodes=[{"date":"2026-07-17","label":"7.17 二期分层"},{"date":"2026-08-07","label":"8.7 改版"}]
+sku_detail_cols=["日期","SKU","价格$","充值uv","金币充值uv","订阅uv","首订uv","续订uv","充值收入","金币充值收入","订阅收入","首订收入","续订收入","总收入"]
+
 P={"gen":dates[-1],"dates":dates,"dau":dau,"rev":rev,"payrate":payrate,"subrate":subrate,"arppu":arppu,
    "chargeuv":chargeuv,"subuv":subuv,"ltv":ltv,"ltv_date":ltv_date,
    "kpi":{"dau":kpi(dau),"payrate":kpi(payrate),"arppu":kpi(arppu),"rev":kpi(rev),"ltv30":ltv[30],"rev30":rev30},
@@ -235,7 +258,9 @@ P={"gen":dates[-1],"dates":dates,"dau":dau,"rev":rev,"payrate":payrate,"subrate"
    "detail":detail,"detail_cols":detail_cols,"detail_countries":countries,
    "site_detail_cols":sd_cols,"site_detail":site_detail,
    "strat_detail":sd_rows,"strat_detail_cols":strat_detail_cols,"strat_list":strat_list,"strat_rev":strat_rev,
-   "strat_by_country":strat_by_country,"strat_bubble":strat_bubble}
+   "strat_by_country":strat_by_country,"strat_bubble":strat_bubble,
+   "sku_dates":sku_dates,"sku_series":sku_series,"sku_nodes":sku_nodes,
+   "sku_detail":sku_detail,"sku_detail_cols":sku_detail_cols,"sku_list":sku_list}
 json.dump(P,open("payload2.json","w"),ensure_ascii=False)
 print("built: site",dates[0],"->",dates[-1],"(",len(dates),"d) | latest DAU",dau[-1],"| 7月rev",round(sum(v for dd,v in zip(dates,rev) if dd[:7]=='2026-07')),
       "| curmonth",cur_month,"MTD",round(mtd),"| ctab",len(ctab),"| detail",len(detail),"| 国家数",len(countries))
