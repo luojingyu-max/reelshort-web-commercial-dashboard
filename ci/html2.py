@@ -77,9 +77,9 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
 <div class="tabs">
  <button class="tab on" data-t="dash">大盘</button>
  <button class="tab" data-t="country">国家</button>
- <button class="tab" data-t="strategy">面板策略</button>
+ <button class="tab" data-t="strategy">商业化策略分析</button>
  <button class="tab" data-t="weekly">周报</button>
- <button class="tab" data-t="sdetail">面板策略明细</button>
+ <button class="tab" data-t="sdetail">面板流量监控</button>
  <button class="tab" data-t="sku">SKU趋势</button>
 </div>
 
@@ -187,7 +187,7 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
 </section>
 
 <section class="panel" id="p-sdetail">
- <h2>面板策略明细 · 按策略(交叉表·纯官网)</h2>
+ <h2>面板流量监控 · 按策略(交叉表·纯官网)</h2>
  <div class="grid2" style="margin-bottom:12px">
   <div class="card"><h3>各策略总收入 Top12(已付费 vs 未付费)</h3><p class="cap">区间累计 $ · 堆叠 · 数据源:交叉表-纯官网</p><div class="cwrap"><canvas id="c_srev"></canvas></div></div>
   <div class="card"><h3>说明</h3><p class="cap" style="line-height:1.7">维度:日期 × <b>是否付费</b> × <b>策略</b> × <b>注册国家</b>;指标:曝光、充值、金币充值、首订、总收入、付费后播放等。<br>下表可按<b>策略 / 付费状态 / 日期 / 关键词(注册国家)</b>筛选、点表头排序、导出 CSV。数据源为最新下载的「交叉表-纯官网数据看板」。</p></div>
