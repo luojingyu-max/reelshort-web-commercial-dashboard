@@ -90,8 +90,9 @@ for r in ws(f"{D}/收入明细.xlsx").iter_rows(min_row=2, values_only=True):
 for d,v in _rraw.items():
     if v["sr"]<=0 and v["ar"]<=0: continue   # 当天总收入列整列未回填(如最新一天,BI 也显示"—"),跳过防止掉成低值
     inc_site[d]=round(v["s"],2); inc_app[d]=round(v["a"],2)
-ov_dates=[d for d in sorted(set(inc_site)|set(inc_app)) if d>="2026-06-01"]
-ov_site=[round(inc_site.get(d,0),2) for d in ov_dates]
+# 官网线改从「官网数据」(site daily·监控明细/种子)取 → 收入数据只需含引流app
+ov_dates=[d for d in sorted(inc_app) if d>="2026-06-01"]
+ov_site=[round(site[d]["rev"],2) if d in site else None for d in ov_dates]
 ov_app=[round(inc_app.get(d,0),2) for d in ov_dates]
 app=[{"date":d,"rev":round(inc_app.get(d,0),2),"charge":round(inc_app.get(d,0)-_rraw[d]["aad"],2),"ad":round(_rraw[d]["aad"],2),
       "pay_uv":round(_rraw[d]["apu"]),"sub_uv":round(_rraw[d]["asu"])} for d in ov_dates]
