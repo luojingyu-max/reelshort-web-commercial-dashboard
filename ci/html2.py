@@ -130,7 +130,7 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
   <div class="card"><h3>LTV 曲线 · 收入 Top6 国家</h3><p class="cap" id="cap_cltv">ltv0→ltv30 · $/人</p><div class="cwrap"><canvas id="c_cltv"></canvas></div></div>
   <div class="card"><h3>各国 LTV(全部国家)</h3><p class="cap">$/人 · ltv0 / ltv7 / ltv14 / ltv30</p><div style="overflow-x:auto;max-height:300px"><table id="t_cltv"></table></div></div>
  </div>
- <h2>各国漏斗率趋势(收入 Top11)</h2>
+ <h2>各国漏斗率趋势(面板策略覆盖国家)</h2>
  <p class="sub" id="cap_funnel" style="margin:-6px 0 10px"></p>
  <div class="card" style="margin-bottom:12px"><h3>观看率(观看uv / DAU)</h3><div class="cwrap" style="height:300px"><canvas id="c_fv"></canvas></div></div>
  <div class="card" style="margin-bottom:12px"><h3>触达付费集率(触达付费集uv / DAU)</h3><div class="cwrap" style="height:300px"><canvas id="c_freach"></canvas></div></div>
@@ -348,11 +348,11 @@ function renderCountry(){
  document.getElementById('t_cltv').innerHTML='<thead><tr><th>国家</th><th>LTV0</th><th>LTV7</th><th>LTV14</th><th>LTV30</th></tr></thead><tbody>'+
   D.country_ltv_table.map(r=>`<tr><td>${r.c}</td><td>${ltvf(r.ltv0)}</td><td>${ltvf(r.ltv7)}</td><td>${ltvf(r.ltv14)}</td><td>${ltvf(r.ltv30)}</td></tr>`).join('')+'</tbody>';
  // 各国漏斗率日趋势(Top11)
- const F=D.funnel||{dates:[],countries:[]}, P11=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#8b5cf6','#00b8d4','#c0396b','#7a5c3e','#4f7a21'];
+ const F=D.funnel||{dates:[],countries:[]}, P13=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#8b5cf6','#00b8d4','#c0396b','#7a5c3e','#4f7a21','#9c27b0','#5d4037'];
  function fchart(id,key){let o=base();o.interaction={mode:'nearest',intersect:false};o.scales.x.ticks.maxTicksLimit=10;o.scales.y.ticks.callback=v=>v+'%';o.plugins.legend.labels.boxWidth=10;o.plugins.legend.labels.font={size:10};
-  mk(id,{type:'line',data:{labels:F.dates,datasets:F.countries.map((c,i)=>({label:c,data:F[key][c],borderColor:P11[i%11],backgroundColor:P11[i%11],borderWidth:1.8,pointRadius:0,pointHoverRadius:3,tension:.25,fill:false,spanGaps:true}))},options:o});}
+  mk(id,{type:'line',data:{labels:F.dates,datasets:F.countries.map((c,i)=>({label:c,data:F[key][c],borderColor:P13[i%13],backgroundColor:P13[i%13],borderWidth:1.8,pointRadius:0,pointHoverRadius:3,tension:.25,fill:false,spanGaps:true}))},options:o});}
  fchart('c_fv','view'); fchart('c_freach','reach'); fchart('c_fo','order');
- g('cap_funnel').textContent='曝光→触达付费集→创建订单 各步渗透率(均以 DAU 为分母)· 收入 Top11 国 · '+(F.dates.length?F.dates[0]+' ~ '+F.dates[F.dates.length-1]:'');
+ g('cap_funnel').textContent='曝光→触达付费集→创建订单 各步渗透率(均以 DAU 为分母)· 面板策略覆盖国家('+F.countries.length+'国)· '+(F.dates.length?F.dates[0]+' ~ '+F.dates[F.dates.length-1]:'');
  renderCountryDetail();
 }
 function grouped(id,rows,ka,kb){const sc=SC();let o=base();o.scales.x.ticks.autoSkip=false;o.scales.x.ticks.maxRotation=50;o.scales.x.ticks.minRotation=50;

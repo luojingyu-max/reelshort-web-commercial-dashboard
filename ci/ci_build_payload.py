@@ -148,7 +148,9 @@ country_ltv_table=[{"c":c,"ltv0":country_ltv["curve"][c][0],"ltv7":country_ltv["
 # ---------- 各国漏斗率日趋势(收入 Top11) ----------
 fstart=(md-datetime.timedelta(days=44)).isoformat()
 funnel_dates=sorted({x["d"] for x in recs if x["d"]>=fstart})
-funnel_top=[c["c"] for c in ctab[:11]]
+_cov=["美国","加拿大","澳大利亚","英国","法国","日本","意大利","巴西","墨西哥","智利","阿根廷","韩国","泰国"]
+_cset={x["c"] for x in recs}
+funnel_top=[c for c in _cov if c in _cset]
 _fa=defaultdict(lambda:{"v":0.0,"rc":0.0,"o":0.0,"d":0.0})
 for x in recs:
     if x["c"] in funnel_top and x["d"]>=fstart:
