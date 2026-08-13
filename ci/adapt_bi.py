@@ -70,11 +70,12 @@ for r in sr[1:]:
         rr=list(r)
         if len(rr)==15: rr=rr[:4]+["全部"]+rr[4:]
         w.append(rr); kept+=1
+_SKC={"美国","加拿大","澳大利亚","英国","法国","日本","意大利","巴西","墨西哥","智利","阿根廷","韩国","泰国"}  # SKU只看13策略国
 add=0
 for r in nb["交叉表3"].iter_rows(min_row=2, values_only=True):
-    if not r or not is2026(r[0]): continue
+    if not r or not is2026(r[0]) or str(r[4]) not in _SKC: continue
     w.append([str(r[0])[:10],r[1],r[2],r[3],r[4]]+[round(num(r[5+k]),2) for k in range(11)]); add+=1
-out.save(f"{D}/SKU交叉表.xlsx"); print("SKU交叉表 (界<%s): 保留%d + 新增%d(含国家)"%(cut,kept,add))
+out.save(f"{D}/SKU交叉表.xlsx"); print("SKU交叉表 (界<%s): 保留%d + 新增%d(仅13策略国)"%(cut,kept,add))
 
 # ---------- 4) 收入明细.xlsx (引流App=SEO监控明细口径; 合并历史) ----------
 cut=newmin("SEO监控明细数据",3)

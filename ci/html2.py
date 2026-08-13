@@ -306,7 +306,7 @@ function renderDash(){
  const R=D.ranges||{};
  g('cap_minis').textContent='时间范围 '+R.dash+' · 悬停看每日值';
  g('cap_ov').textContent='$ · '+R.ov;
- g('cap_apprev').textContent='$ · 充值+广告 · '+R.ov;
+ g('cap_apprev').textContent='$ · 充值+广告 · '+R.ov+' · 口径:7月=收入数据、8月起=每日附件(8/1有切换)';
  g('cap_appuv').textContent='人 · '+R.ov;
  mk('c_ov',{type:'line',data:{labels:D.ov_dates,datasets:[L(D.ov_site,sc[0],'官网'),L(D.ov_app,sc[1],'引流App')]},options:base()});
  let ol=base();ol.plugins.legend.display=false;ol.scales.x.ticks.maxTicksLimit=12;
@@ -519,7 +519,7 @@ function skuChart(id,series){
  mk(id,{type:'line',data:{labels:dts,datasets:(series||[]).map((s,i)=>L(s.data,sc[i%6],s.name.length>20?s.name.slice(0,20)+'…':s.name))},options:o,plugins:[nodePlugin]});
 }
 function renderSku(){
- g('cap_sku').innerHTML='各取 Top6 SKU 的每日收入($),按商品类型分两图;虚线节点:<b>6.17 一期</b> / <b>7.17 二期</b> / <b>8.8 三期(改未付费金币档位)</b>。时间范围 '+((D.ranges||{}).sku||'')+'。';
+ g('cap_sku').innerHTML='各取 Top6 SKU 的每日收入($),按商品类型分两图;虚线节点:<b>6.17 一期</b> / <b>7.17 二期</b> / <b>8.8 三期(改未付费金币档位)</b>。时间范围 '+((D.ranges||{}).sku||'')+' · <b>仅面板策略覆盖 13 国</b>(约占官网直充 70%)。';
  skuChart('c_sku_coin',D.sku_coin); skuChart('c_sku_sub',D.sku_sub);
  const su=D.sku_summary||{wins:[],rows:[]}; const pc=(c,p)=>p?((c-p)/p*100>=0?'+':'')+((c-p)/p*100).toFixed(0)+'%':'—';
  g('t_ksum').innerHTML='<thead><tr><th style="text-align:left">类型 · 日均收入</th>'+su.wins.map(w=>`<th>${w}</th>`).join('')+'</tr></thead><tbody>'+
