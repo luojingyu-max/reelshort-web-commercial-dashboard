@@ -201,7 +201,7 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
  <h2>曝光 × 充值率 × 总收入 · 策略调优视图</h2>
  <p class="sub" style="margin:-6px 0 12px">覆盖国家的每个策略一个气泡:横轴=曝光uv(对数),纵轴=曝光→充值率%,气泡大小=总收入。<b>右上大气泡</b>=高曝光高转化高产出(保/加量);<b>右下小气泡</b>=曝光大但转化低产出低(该调价/收量);<b>左上</b>=转化高但曝光小(可放量)。悬停看明细。</p>
  <div class="card"><div class="cwrap" style="height:420px"><canvas id="c_sbub"></canvas></div></div>
- <h2>各覆盖国家 · 命中策略明细(曝光 / 充值率 / 订阅uv占比 / 总收入)</h2>
+ <h2>各覆盖国家 · 命中策略明细(曝光 / 充值uv / 充值率 / 订阅uv占比 / 总收入)</h2>
  <p class="sub" style="margin:-6px 0 12px">表1 点名覆盖的 13 国,各自命中策略的曝光量、曝光→充值率、订阅uv占比、总收入并排对比,按曝光uv 取 Top6。<b>可选日期区间</b>看指定期内的曝光分布。</p>
  <div class="filters" style="margin-bottom:10px"><label>日期 <input type="date" id="cb_from"></label><label>~ <input type="date" id="cb_to"></label><button class="fbtn" id="cb_reset">重置</button><span class="cap" id="cb_note"></span></div>
  <div class="grid2" id="cbys"></div>
@@ -500,8 +500,8 @@ function drawCbys(){
  const cks=cov.filter(c=>agg[c]);
  g('cb_note').textContent='区间 '+(fr||'起')+' ~ '+(to||'今')+' · 命中 '+cks.length+' 国';
  g('cbys').innerHTML=cks.map(c=>{
-   const its=Object.keys(agg[c]).map(s=>{const a=agg[c][s];return {sl:sl(s),exp:a.e,rate:a.e?a.p/a.e*100:0,subr:a.p?a.f/a.p*100:0,rev:a.rev};}).filter(x=>x.exp>0).sort((a,b)=>b.exp-a.exp).slice(0,6);
-   return `<div class="card"><h3 style="margin:0 0 8px">${c} · 命中 ${its.length} 策略</h3><div style="overflow-x:auto"><table><thead><tr><th style="text-align:left">策略</th><th>曝光uv</th><th>充值率</th><th>订阅uv占比</th><th>总收入</th></tr></thead><tbody>`+its.map(x=>`<tr><td style="text-align:left">${x.sl}</td><td>${int(x.exp)}</td><td>${x.rate.toFixed(2)}%</td><td>${x.subr.toFixed(1)}%</td><td>${usd(x.rev)}</td></tr>`).join('')+`</tbody></table></div></div>`;
+   const its=Object.keys(agg[c]).map(s=>{const a=agg[c][s];return {sl:sl(s),exp:a.e,pay:a.p,rate:a.e?a.p/a.e*100:0,subr:a.p?a.f/a.p*100:0,rev:a.rev};}).filter(x=>x.exp>0).sort((a,b)=>b.exp-a.exp).slice(0,6);
+   return `<div class="card"><h3 style="margin:0 0 8px">${c} · 命中 ${its.length} 策略</h3><div style="overflow-x:auto"><table><thead><tr><th style="text-align:left">策略</th><th>曝光uv</th><th>充值uv</th><th>充值率</th><th>订阅uv占比</th><th>总收入</th></tr></thead><tbody>`+its.map(x=>`<tr><td style="text-align:left">${x.sl}</td><td>${int(x.exp)}</td><td>${int(x.pay)}</td><td>${x.rate.toFixed(2)}%</td><td>${x.subr.toFixed(1)}%</td><td>${usd(x.rev)}</td></tr>`).join('')+`</tbody></table></div></div>`;
  }).join('');
 }
 function renderSdetail(){
