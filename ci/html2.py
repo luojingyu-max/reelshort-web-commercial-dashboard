@@ -124,7 +124,7 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
  </div>
  <div class="grid2" style="margin-top:12px">
   <div class="card"><h3>盘口覆盖国家 vs 其余国家 · 收入占比</h3><p class="cap" id="cap_covpie"></p><div class="cwrap" style="height:300px"><canvas id="c_covpie"></canvas></div></div>
-  <div class="card"><h3>各国收入占比(Top8 + 其他)</h3><p class="cap" id="cap_allpie"></p><div class="cwrap" style="height:300px"><canvas id="c_allpie"></canvas></div></div>
+  <div class="card"><h3>各国收入占比(全部国家)</h3><p class="cap" id="cap_allpie"></p><div class="cwrap" style="height:300px"><canvas id="c_allpie"></canvas></div></div>
  </div>
  <h2>盘口覆盖国家 KPI 明细(带月/周环比 · 含漏斗)</h2>
  <p class="sub" id="cap_ctab" style="margin:-6px 0 10px"></p>
@@ -344,13 +344,13 @@ function renderCountry(){
  mk('c_covpie',{type:'doughnut',data:{labels:['盘口覆盖 13 国','其余国家'],datasets:[{data:[Math.round(covRev),Math.round(restRev)],backgroundColor:[sc[0],css('--axis')],borderColor:css('--surface'),borderWidth:2}]},
   options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'right',labels:{color:css('--ink2'),usePointStyle:true,pointStyle:'rectRounded',boxWidth:12}},tooltip:{callbacks:{label:c=>c.label+': '+usd(c.raw)+' ('+(c.raw/totRev*100).toFixed(1)+'%)'}}}}});
  g('cap_covpie').textContent='本月至今 '+R.country+' · 盘口13国 '+(covRev/totRev*100).toFixed(1)+'% / 其余 '+(restRev/totRev*100).toFixed(1)+'%';
- // 全部国家收入占比:Top8 + 其他
- const pie9=[sc[0],sc[1],sc[2],sc[3],sc[4],sc[5],'#8b5cf6','#00b8d4',css('--axis')];
- const top8=ct.slice(0,8); const others=ct.slice(8).reduce((s,x)=>s+x.rev,0);
- mk('c_allpie',{type:'doughnut',data:{labels:top8.map(x=>x.c).concat(['其他 '+(ct.length-8)+' 国']),
-   datasets:[{data:top8.map(x=>Math.round(x.rev)).concat([Math.round(others)]),backgroundColor:pie9,borderColor:css('--surface'),borderWidth:2}]},
-  options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'right',labels:{color:css('--ink2'),usePointStyle:true,pointStyle:'rectRounded',boxWidth:11,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+usd(c.raw)+' ('+(c.raw/totRev*100).toFixed(1)+'%)'}}}}});
- g('cap_allpie').textContent='本月至今 '+R.country+' · 官网直充收入 · 按国家';
+ // 全部国家收入占比:每个有收入的国家各一块(不聚合),按收入排序,金色角度分色
+ const allc=ct.filter(x=>x.rev>0);
+ const acols=allc.map((_,i)=>`hsl(${(i*137.508)%360},62%,55%)`);
+ mk('c_allpie',{type:'doughnut',data:{labels:allc.map(x=>x.c),
+   datasets:[{data:allc.map(x=>Math.round(x.rev)),backgroundColor:acols,borderColor:css('--surface'),borderWidth:1}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.label+': '+usd(c.raw)+' ('+(c.raw/totRev*100).toFixed(1)+'%)'}}}}});
+ g('cap_allpie').textContent='本月至今 '+R.country+' · 全部 '+allc.length+' 个有收入国家各占一块(按收入排序)· 悬停看明细';
  g('cap_cstack').textContent='本月至今 '+R.country+' · $ · 堆叠 · 收入前10';
  g('cap_cmom').textContent='本月至今 '+R.country+' vs 上月同期 '+R.country_prev+' · %';
  g('cap_ctab').textContent='时间窗口:本月至今 '+R.country+' · 仅列盘口覆盖国家(按盘口分组)。漏斗逐级转化:观看率=观看/DAU、触达付费集率=触达/观看、创建订单率=订单/触达;付费率=充值uv/DAU;ARPU=总收入/DAU。全量国家见下方明细。';
