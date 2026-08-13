@@ -145,6 +145,24 @@ def cltv(c):
 country_ltv={"countries":countries,"curve":{c:cltv(c) for c in countries},"mature_cut":mcut}
 country_ltv_table=[{"c":c,"ltv0":country_ltv["curve"][c][0],"ltv7":country_ltv["curve"][c][7],
                     "ltv14":country_ltv["curve"][c][14],"ltv30":country_ltv["curve"][c][30]} for c in countries]
+# ---------- 各国漏斗率日趋势(收入 Top11) ----------
+fstart=(md-datetime.timedelta(days=44)).isoformat()
+funnel_dates=sorted({x["d"] for x in recs if x["d"]>=fstart})
+funnel_top=[c["c"] for c in ctab[:11]]
+_fa=defaultdict(lambda:{"v":0.0,"rc":0.0,"o":0.0,"d":0.0})
+for x in recs:
+    if x["c"] in funnel_top and x["d"]>=fstart:
+        a=_fa[(x["c"],x["d"])]; a["v"]+=x["view"]; a["rc"]+=x["reach"]; a["o"]+=x["order"]; a["d"]+=x["dau"]
+def _frate(c,m):
+    o=[]
+    for d in funnel_dates:
+        a=_fa.get((c,d))
+        o.append(round(a[m]/a["d"]*100,3) if (a and a["d"]) else None)
+    return o
+funnel={"dates":funnel_dates,"countries":funnel_top,
+        "view":{c:_frate(c,"v") for c in funnel_top},
+        "reach":{c:_frate(c,"rc") for c in funnel_top},
+        "order":{c:_frate(c,"o") for c in funnel_top}}
 detail=[]
 for x in sorted(recs,key=lambda r:(r["d"],r["c"])):
     detail.append([x["d"],x["c"],"已付费" if x["paid"] else "未付费",round(x["dau"]),round(x["uv"]),round(x["sub"]),
@@ -290,7 +308,7 @@ P={"gen":dates[-1],"dates":dates,"dau":dau,"rev":rev,"payrate":payrate,"subrate"
    "targets":targets,"cur_month":cur_month,"mtd":round(mtd),"target_cur":target_cur,"dash_mom":dash_mom,
    "ctab":ctab,"cwindows":cwindows,"panel1":panel1,"panel1_header":strat["panel1_header"],
    "phase2_unpaid":phase2_unpaid,"phase2_paid":phase2_paid,"strategy":strat["strategy"],"strategy_header":strat["strategy_header"],
-   "country_ltv":country_ltv,"country_ltv_table":country_ltv_table,"phase2_ltv":phase2_ltv,
+   "country_ltv":country_ltv,"country_ltv_table":country_ltv_table,"phase2_ltv":phase2_ltv,"funnel":funnel,
    "detail":detail,"detail_cols":detail_cols,"detail_countries":countries,
    "site_detail_cols":sd_cols,"site_detail":site_detail,
    "strat_detail":sd_rows,"strat_detail_cols":strat_detail_cols,"strat_list":strat_list,"strat_rev":strat_rev,
