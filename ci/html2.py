@@ -219,7 +219,8 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
 
 <section class="panel" id="p-sku">
  <h2>主力 SKU 收入日曲线 · 金币 vs 订阅</h2>
- <p class="sub" id="cap_sku" style="margin:-6px 0 12px"></p>
+ <p class="sub" id="cap_sku" style="margin:-6px 0 8px"></p>
+ <div class="filters" style="margin-bottom:10px"><label>国家 <select id="sku_ctry"></select></label><span class="cap">(Top6 按所选国家重算)</span></div>
  <div class="card" style="margin-bottom:12px"><h3>金币 · Top6 SKU</h3><div class="cwrap" style="height:360px"><canvas id="c_sku_coin"></canvas></div></div>
  <div class="card" style="margin-bottom:12px"><h3>订阅 · Top6 SKU</h3><div class="cwrap" style="height:360px"><canvas id="c_sku_sub"></canvas></div></div>
  <div class="card"><h3>金币 vs 订阅 · 各阶段日均收入对比</h3><div style="overflow-x:auto"><table id="t_ksum"></table></div>
@@ -519,9 +520,19 @@ function skuChart(id,series){
  let o=base(); o.layout={padding:{top:16}}; o.scales.x.ticks.maxTicksLimit=10; o.scales.y.ticks.callback=v=>'$'+(v>=1000?(v/1000)+'k':v); o.plugins.legend.labels.font={size:10};
  mk(id,{type:'line',data:{labels:dts,datasets:(series||[]).map((s,i)=>L(s.data,sc[i%6],s.name.length>20?s.name.slice(0,20)+'…':s.name))},options:o,plugins:[nodePlugin]});
 }
+function drawSku(){
+ const country=g('sku_ctry').value, dts=D.sku_dates||[], di={}; dts.forEach((d,i)=>di[d]=i);
+ const cB={},sB={},cT={},sT={};
+ (D.sku_detail||[]).forEach(r=>{ if(country&&r[4]!==country)return; const sku=r[1],j=di[r[0]]; if(j==null)return;
+  const coin=r[2]==='金币', by=coin?cB:sB, tot=coin?cT:sT; (by[sku]=by[sku]||new Array(dts.length).fill(0))[j]+=r[15]; tot[sku]=(tot[sku]||0)+r[15]; });
+ const top=(by,tot)=>Object.keys(tot).sort((a,b)=>tot[b]-tot[a]).slice(0,6).map(k=>({name:k,data:by[k].map(v=>+v.toFixed(2))}));
+ skuChart('c_sku_coin',top(cB,cT)); skuChart('c_sku_sub',top(sB,sT));
+}
 function renderSku(){
- g('cap_sku').innerHTML='各取 Top6 SKU 的每日收入($),按商品类型分两图;虚线节点:<b>6.17 一期</b> / <b>7.17 二期</b> / <b>8.8 三期(改未付费金币档位)</b>。时间范围 '+((D.ranges||{}).sku||'')+' · <b>仅面板策略覆盖 13 国</b>(约占官网直充 70%)。';
- skuChart('c_sku_coin',D.sku_coin); skuChart('c_sku_sub',D.sku_sub);
+ g('cap_sku').innerHTML='各取 Top6 SKU 的每日收入($),按商品类型分两图,<b>可按国家筛选</b>;虚线节点:<b>6.17 一期</b> / <b>7.17 二期</b> / <b>8.8 三期(改未付费金币档位)</b>。时间范围 '+((D.ranges||{}).sku||'')+' · <b>仅面板策略覆盖 13 国</b>(约占官网直充 70%)。';
+ const cs=g('sku_ctry');
+ if(!cs.dataset.init){ cs.innerHTML='<option value="">全部国家</option>'+(D.sku_countries||[]).map(c=>`<option>${c}</option>`).join(''); cs.addEventListener('change',drawSku); cs.dataset.init='1'; }
+ drawSku();
  const su=D.sku_summary||{wins:[],rows:[]}; const pc=(c,p)=>p?((c-p)/p*100>=0?'+':'')+((c-p)/p*100).toFixed(0)+'%':'—';
  g('t_ksum').innerHTML='<thead><tr><th style="text-align:left">类型 · 日均收入</th>'+su.wins.map(w=>`<th>${w}</th>`).join('')+'</tr></thead><tbody>'+
   su.rows.map(r=>'<tr><td style="text-align:left"><b>'+r.k+'</b></td>'+r.vals.map((v,i)=>`<td>${usd(v)}${i>0?' <span class="cap">('+pc(v,r.vals[i-1])+')</span>':''}</td>`).join('')+'</tr>').join('')+'</tbody>';
