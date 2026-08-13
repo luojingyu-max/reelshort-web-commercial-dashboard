@@ -32,7 +32,7 @@ def load_cp(path):
         if not d or not r[1]: continue
         ltv=[num(r[32+k]) if len(r)>32+k else 0 for k in range(31)]
         out.append({"d":d,"c":r[1],"paid":(r[2]=="已付费用户"),"dau":num(r[4]),"view":num(r[5]),"reach":num(r[7]),"order":num(r[9]),
-                    "uv":num(r[11]),"payok":num(r[12]),"coin":num(r[14]),"sub":num(r[16]),"rev":num(r[22]),"ltv":ltv})
+                    "uv":num(r[11]),"payok":num(r[12]),"coin":num(r[14]),"sub":num(r[16]),"subrev":num(r[25]),"rev":num(r[22]),"ltv":ltv})
     return out
 seed_cp=[x for x in load_cp(f"{D}/国家+付费.xlsx") if x["d"]<"2026-07-15"]
 rec_cp=[x for x in load_cp(f"{D}/官网监控明细_recent.xlsx") if re.match(r'2026-\d\d-\d\d',x["d"])]
@@ -118,12 +118,12 @@ dash_mom={"metrics":dash_metrics,"win":{"month":list(tmv),"lastmonth":list(lmv),
 def win(a,b): return [x for x in recs if a<=x["d"]<=b]
 def arev(rows,c,paid=None): return sum(x["rev"] for x in rows if x["c"]==c and (paid is None or x["paid"]==paid))
 def cagg(rows,c,paid=None):
-    d_=u_=s_=r_=v_=rc_=o_=0.0; days=set()
+    d_=u_=s_=r_=v_=rc_=o_=sr_=0.0; days=set()
     for x in rows:
         if x["c"]!=c or (paid is not None and x["paid"]!=paid): continue
-        d_+=x["dau"]; u_+=x["uv"]; s_+=x["sub"]; r_+=x["rev"]; v_+=x["view"]; rc_+=x["reach"]; o_+=x["order"]; days.add(x["d"])
+        d_+=x["dau"]; u_+=x["uv"]; s_+=x["sub"]; r_+=x["rev"]; v_+=x["view"]; rc_+=x["reach"]; o_+=x["order"]; sr_+=x["subrev"]; days.add(x["d"])
     nd=len(days) or 1
-    return {"rev":round(r_,2),"dau":round(d_/nd),"payrate":round(u_/d_*100,3) if d_ else 0,
+    return {"rev":round(r_,2),"subrev":round(sr_,2),"dau":round(d_/nd),"payrate":round(u_/d_*100,3) if d_ else 0,
             "subrate":round(s_/d_*100,3) if d_ else 0,"arppu":round(r_/u_,2) if u_ else 0,
             "viewrate":round(v_/d_*100,2) if d_ else 0,"reachrate":round(rc_/v_*100,2) if v_ else 0,
             "orderrate":round(o_/rc_*100,2) if rc_ else 0,"arpu":round(r_/d_,4) if d_ else 0}
