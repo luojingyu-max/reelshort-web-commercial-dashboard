@@ -333,7 +333,7 @@ function renderCountry(){
  const R=D.ranges||{};
  g('cap_cstack').textContent='本月至今 '+R.country+' · $ · 堆叠 · 收入前10';
  g('cap_cmom').textContent='本月至今 '+R.country+' vs 上月同期 '+R.country_prev+' · %';
- g('cap_ctab').textContent='时间窗口:本月至今 '+R.country+'。漏斗率均以 DAU 为分母(观看/触达付费集/创建订单),ARPU=总收入/DAU。';
+ g('cap_ctab').textContent='时间窗口:本月至今 '+R.country+'。漏斗逐级转化:观看率=观看uv/DAU、触达付费集率=触达uv/观看uv、创建订单率=订单uv/触达uv;ARPU=总收入/DAU。';
  document.getElementById('t_ctab').innerHTML=
   '<thead><tr><th>国家</th><th>本月收入</th><th>已付费</th><th>未付费</th><th>MoM</th><th>WoW</th><th>观看率</th><th>触达付费集率</th><th>创建订单率</th><th>付费率</th><th>ARPU</th><th>ARPPU</th><th>日均DAU</th></tr></thead><tbody>'+
   ct.map(c=>`<tr><td>${c.c}</td><td>${usd(c.rev)}</td><td>${usd(c.rev_paid)}</td><td>${usd(c.rev_unpaid)}</td><td>${chg(c.rev_mom)}</td><td>${chg(c.rev_wow)}</td><td>${pc(c.viewrate,2)}</td><td>${pc(c.reachrate,2)}</td><td>${pc(c.orderrate,3)}</td><td>${pc(c.payrate,3)}</td><td>$${Number(c.arpu).toFixed(4)}</td><td>${usd1(c.arppu)}</td><td>${int(c.dau)}</td></tr>`).join('')+'</tbody>';
@@ -350,12 +350,12 @@ function renderCountry(){
  g('funnel-cards').innerHTML=F.groups.map((grp,i)=>`<div class="card" style="margin-bottom:12px"><div class="filters" style="align-items:center"><h3 style="margin:0 8px 0 0">${grp.name}</h3><label>国家 <select id="fsel${i}"><option>全部</option>${grp.countries.map(c=>`<option>${c}</option>`).join('')}</select></label></div><div class="cwrap" style="height:290px"><canvas id="fc${i}"></canvas></div></div>`).join('');
  function fdraw(i){const grp=F.groups[i], sel=g('fsel'+i).value, cs=(sel==='全部')?grp.countries:[sel], n=F.dates.length;
   const sum=key=>{let a=new Array(n).fill(0); cs.forEach(c=>{const r=F.raw[c]; if(r)for(let j=0;j<n;j++)a[j]+=r[key][j];}); return a;};
-  const dd=sum('dau'), rate=arr=>arr.map((x,j)=>dd[j]?+(x/dd[j]*100).toFixed(3):null);
-  let o=base();o.interaction={mode:'index',intersect:false};o.scales.x.ticks.maxTicksLimit=9;
-  o.scales.y.type='logarithmic';o.scales.y.ticks.callback=v=>{const Lv=[0.2,0.5,1,2,5,10,20,50];return Lv.indexOf(v)>=0?v+'%':'';};
-  mk('fc'+i,{type:'line',data:{labels:F.dates,datasets:[L(rate(sum('view')),sc3[0],'观看率'),L(rate(sum('reach')),sc3[1],'触达付费集率'),L(rate(sum('order')),sc3[2],'创建订单率')]},options:o});}
+  const vv=sum('view'),rc=sum('reach'),oo=sum('order'),dd=sum('dau');
+  const div=(a,b)=>a.map((x,j)=>b[j]?+(x/b[j]*100).toFixed(2):null);
+  let o=base();o.interaction={mode:'index',intersect:false};o.scales.x.ticks.maxTicksLimit=9;o.scales.y.ticks.callback=v=>v+'%';
+  mk('fc'+i,{type:'line',data:{labels:F.dates,datasets:[L(div(vv,dd),sc3[0],'观看率(观看/DAU)'),L(div(rc,vv),sc3[1],'触达付费集率(触达/观看)'),L(div(oo,rc),sc3[2],'创建订单率(订单/触达)')]},options:o});}
  F.groups.forEach((_,i)=>{g('fsel'+i).addEventListener('change',()=>fdraw(i)); fdraw(i);});
- g('cap_funnel').textContent='曝光→触达付费集→创建订单 三步渗透率(/DAU · 对数轴)· 按盘口分 5 组,组内国家可筛选(默认=组内汇总)· '+(F.dates.length?F.dates[0]+' ~ '+F.dates[F.dates.length-1]:'');
+ g('cap_funnel').textContent='漏斗逐级转化率:观看率=观看uv/DAU、触达付费集率=触达uv/观看uv、创建订单率=订单uv/触达uv · 按盘口分 5 组,组内国家可筛选(默认=组内汇总)· '+(F.dates.length?F.dates[0]+' ~ '+F.dates[F.dates.length-1]:'');
  renderCountryDetail();
 }
 function grouped(id,rows,ka,kb){const sc=SC();let o=base();o.scales.x.ticks.autoSkip=false;o.scales.x.ticks.maxRotation=50;o.scales.x.ticks.minRotation=50;

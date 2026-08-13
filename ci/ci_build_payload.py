@@ -125,8 +125,8 @@ def cagg(rows,c,paid=None):
     nd=len(days) or 1
     return {"rev":round(r_,2),"dau":round(d_/nd),"payrate":round(u_/d_*100,3) if d_ else 0,
             "subrate":round(s_/d_*100,3) if d_ else 0,"arppu":round(r_/u_,2) if u_ else 0,
-            "viewrate":round(v_/d_*100,2) if d_ else 0,"reachrate":round(rc_/d_*100,2) if d_ else 0,
-            "orderrate":round(o_/d_*100,3) if d_ else 0,"arpu":round(r_/d_,4) if d_ else 0}
+            "viewrate":round(v_/d_*100,2) if d_ else 0,"reachrate":round(rc_/v_*100,2) if v_ else 0,
+            "orderrate":round(o_/rc_*100,2) if rc_ else 0,"arpu":round(r_/d_,4) if d_ else 0}
 tm=(iso(md.replace(day=1)),maxd); lm=(iso(lme.replace(day=1)),iso(lme.replace(day=min(md.day,lme.day))))
 wk=(iso(md-datetime.timedelta(days=6)),maxd); pw=(iso(md-datetime.timedelta(days=13)),iso(md-datetime.timedelta(days=7)))
 TMc,LMc,Wc,PWc=win(*tm),win(*lm),win(*wk),win(*pw)
