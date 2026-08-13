@@ -202,7 +202,8 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
  <p class="sub" style="margin:-6px 0 12px">覆盖国家的每个策略一个气泡:横轴=曝光uv(对数),纵轴=曝光→充值率%,气泡大小=总收入。<b>右上大气泡</b>=高曝光高转化高产出(保/加量);<b>右下小气泡</b>=曝光大但转化低产出低(该调价/收量);<b>左上</b>=转化高但曝光小(可放量)。悬停看明细。</p>
  <div class="card"><div class="cwrap" style="height:420px"><canvas id="c_sbub"></canvas></div></div>
  <h2>各覆盖国家 · 命中策略明细(曝光 / 充值率 / 订阅uv占比 / 总收入)</h2>
- <p class="sub" style="margin:-6px 0 12px">表1 点名覆盖的 13 国,各自命中策略的曝光量、曝光→充值率、总收入并排对比,按曝光uv 取 Top6。</p>
+ <p class="sub" style="margin:-6px 0 12px">表1 点名覆盖的 13 国,各自命中策略的曝光量、曝光→充值率、订阅uv占比、总收入并排对比,按曝光uv 取 Top6。<b>可选日期区间</b>看指定期内的曝光分布。</p>
+ <div class="filters" style="margin-bottom:10px"><label>日期 <input type="date" id="cb_from"></label><label>~ <input type="date" id="cb_to"></label><button class="fbtn" id="cb_reset">重置</button><span class="cap" id="cb_note"></span></div>
  <div class="grid2" id="cbys"></div>
  <h2>全量明细</h2>
  <div class="card">
@@ -489,6 +490,20 @@ function renderWeekly(){
 const renderStratTable=makeFilterTable({rows:D.strat_detail,cols:D.strat_detail_cols,cIdx:2,pIdx:1,countries:D.strat_list,selLabel:'全部策略',kwCols:[0,3],
  fmt:(v,i)=>i<4?v:((i===12||i===13||i===14)?usd(v):int(v)),csv:'面板策略明细.csv',
  ids:{country:'x_strat',paid:'x_paid',from:'x_from',to:'x_to',kw:'x_kw',reset:'x_reset',csv:'x_csv',count:'x_count',table:'t_xd'}});
+function drawCbys(){
+ const cov=Object.keys(D.strat_by_country||{}), covset={}; cov.forEach(c=>covset[c]=1);
+ const fr=g('cb_from').value, to=g('cb_to').value, agg={};
+ (D.strat_detail||[]).forEach(r=>{ if(!covset[r[3]])return; if(fr&&r[0]<fr)return; if(to&&r[0]>to)return;
+   const c=r[3],s=r[2]; (agg[c]=agg[c]||{}); const a=(agg[c][s]=agg[c][s]||{e:0,p:0,f:0,rev:0});
+   a.e+=r[5]; a.p+=r[7]; a.f+=r[11]; a.rev+=r[12]; });
+ const sl=s=>s.replace('官网-','').replace('-kim','').replace('kim ','');
+ const cks=cov.filter(c=>agg[c]);
+ g('cb_note').textContent='区间 '+(fr||'起')+' ~ '+(to||'今')+' · 命中 '+cks.length+' 国';
+ g('cbys').innerHTML=cks.map(c=>{
+   const its=Object.keys(agg[c]).map(s=>{const a=agg[c][s];return {sl:sl(s),exp:a.e,rate:a.e?a.p/a.e*100:0,subr:a.p?a.f/a.p*100:0,rev:a.rev};}).filter(x=>x.exp>0).sort((a,b)=>b.exp-a.exp).slice(0,6);
+   return `<div class="card"><h3 style="margin:0 0 8px">${c} · 命中 ${its.length} 策略</h3><div style="overflow-x:auto"><table><thead><tr><th style="text-align:left">策略</th><th>曝光uv</th><th>充值率</th><th>订阅uv占比</th><th>总收入</th></tr></thead><tbody>`+its.map(x=>`<tr><td style="text-align:left">${x.sl}</td><td>${int(x.exp)}</td><td>${x.rate.toFixed(2)}%</td><td>${x.subr.toFixed(1)}%</td><td>${usd(x.rev)}</td></tr>`).join('')+`</tbody></table></div></div>`;
+ }).join('');
+}
 function renderSdetail(){
  g('cap_strat').textContent='时间范围 '+((D.ranges||{}).strat||'')+' · 卡片为区间累计;下表可按策略/付费/国家/日期筛选';
  const sc=SC(); let o=base(); o.indexAxis='y';
@@ -504,9 +519,14 @@ function renderSdetail(){
  bo.scales.y.title={display:true,text:'曝光→充值率 %',color:css('--muted')}; bo.scales.y.ticks.callback=v=>v+'%';
  bo.plugins.tooltip.callbacks={title:()=>'',label:c=>{const d=c.raw;return [d._c+' · '+d._s,'曝光uv '+int(d._e)+'  ·  充值率 '+d._rate+'%','总收入 '+usd(d._rev)];}};
  mk('c_sbub',{type:'bubble',data:{datasets:[{data:bub,backgroundColor:ha(sc[0],.5),borderColor:sc[0],borderWidth:1,hoverBackgroundColor:ha(sc[1],.7)}]},options:bo});
- // 各覆盖国家命中策略明细表(曝光/充值率/总收入)
- const cbs=D.strat_by_country||{}, cks=Object.keys(cbs);
- g('cbys').innerHTML=cks.map(c=>`<div class="card"><h3 style="margin:0 0 8px">${c} · 命中 ${cbs[c].length} 策略</h3><div style="overflow-x:auto"><table><thead><tr><th style="text-align:left">策略</th><th>曝光uv</th><th>充值率</th><th>订阅uv占比</th><th>总收入</th></tr></thead><tbody>`+cbs[c].map(x=>`<tr><td style="text-align:left">${x.sl}</td><td>${int(x.exp)}</td><td>${x.rate}%</td><td>${x.subr}%</td><td>${usd(x.rev)}</td></tr>`).join('')+`</tbody></table></div></div>`).join('');
+ // 各覆盖国家命中策略明细(按日期区间前端重算,见 drawCbys)
+ const cbDates=(D.strat_detail||[]).map(r=>r[0]);
+ const cbMin=cbDates.length?cbDates.reduce((a,b)=>a<b?a:b):'', cbMax=cbDates.length?cbDates.reduce((a,b)=>a>b?a:b):'';
+ if(!g('cb_from').dataset.init){ g('cb_from').value=cbMin; g('cb_to').value=cbMax;
+   ['cb_from','cb_to'].forEach(id=>g(id).addEventListener('change',drawCbys));
+   g('cb_reset').onclick=()=>{g('cb_from').value=cbMin;g('cb_to').value=cbMax;drawCbys();};
+   g('cb_from').dataset.init='1'; }
+ drawCbys();
  renderStratTable();
 }
 const renderSkuTable=makeFilterTable({rows:D.sku_detail,cols:D.sku_detail_cols,cIdx:1,pIdx:2,eIdx:4,countries:D.sku_list,selLabel:'全部SKU',
