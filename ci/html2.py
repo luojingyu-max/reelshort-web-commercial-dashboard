@@ -474,6 +474,7 @@ function drawWeek(){
  if(w.summary&&w.summary.length) h+='<div class="card"><h3>本周摘要</h3><div class="concl">'+w.summary.map(s=>'• '+s).join('<br>')+'</div></div>';
  if(w.dapan) h+='<div class="card" style="margin-top:12px"><h3>大盘数据回收</h3>'+wtbl(w.dapan)+'</div>';
  if(w.phase2) h+='<div class="card" style="margin-top:12px"><h3>二期面板策略数据回收</h3><p class="cap">'+(w.phase2.note||'')+'</p>'+wtbl(w.phase2)+'</div>';
+ if(w.ab) h+='<div class="card" style="margin-top:12px"><h3>AB 实验 · 美国 12.99 周卡(初步)</h3><p class="cap">'+(w.ab.note||'')+'</p>'+wtbl(w.ab)+'</div>';
  if(w.concl&&w.concl.length) h+='<div class="card" style="margin-top:12px"><h3>结论与现状</h3><div class="concl">'+w.concl.map(s=>'• '+s).join('<br>')+'</div></div>';
  h+='<div class="card" style="margin-top:12px"><h3>社媒</h3><div class="concl">'+(w.social||'暂无数据')+'</div></div>';
  g('wk_body').innerHTML=h;
