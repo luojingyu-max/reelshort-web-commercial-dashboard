@@ -523,7 +523,7 @@ function renderSdetail(){
  const cbDates=(D.strat_detail||[]).map(r=>r[0]);
  const cbMin=cbDates.length?cbDates.reduce((a,b)=>a<b?a:b):'', cbMax=cbDates.length?cbDates.reduce((a,b)=>a>b?a:b):'';
  if(!g('cb_from').dataset.init){ g('cb_from').value=cbMin; g('cb_to').value=cbMax;
-   ['cb_from','cb_to'].forEach(id=>g(id).addEventListener('change',drawCbys));
+   ['cb_from','cb_to'].forEach(id=>{g(id).addEventListener('change',drawCbys);g(id).addEventListener('input',drawCbys);});
    g('cb_reset').onclick=()=>{g('cb_from').value=cbMin;g('cb_to').value=cbMax;drawCbys();};
    g('cb_from').dataset.init='1'; }
  drawCbys();
