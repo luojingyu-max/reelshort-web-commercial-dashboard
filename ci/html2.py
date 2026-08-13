@@ -201,7 +201,7 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
  <h2>曝光 × 充值率 × 总收入 · 策略调优视图</h2>
  <p class="sub" style="margin:-6px 0 12px">覆盖国家的每个策略一个气泡:横轴=曝光uv(对数),纵轴=曝光→充值率%,气泡大小=总收入。<b>右上大气泡</b>=高曝光高转化高产出(保/加量);<b>右下小气泡</b>=曝光大但转化低产出低(该调价/收量);<b>左上</b>=转化高但曝光小(可放量)。悬停看明细。</p>
  <div class="card"><div class="cwrap" style="height:420px"><canvas id="c_sbub"></canvas></div></div>
- <h2>各覆盖国家 · 命中策略明细(曝光 / 充值率 / 总收入)</h2>
+ <h2>各覆盖国家 · 命中策略明细(曝光 / 充值率 / 订阅uv占比 / 总收入)</h2>
  <p class="sub" style="margin:-6px 0 12px">表1 点名覆盖的 13 国,各自命中策略的曝光量、曝光→充值率、总收入并排对比,按曝光uv 取 Top6。</p>
  <div class="grid2" id="cbys"></div>
  <h2>全量明细</h2>
@@ -504,7 +504,7 @@ function renderSdetail(){
  mk('c_sbub',{type:'bubble',data:{datasets:[{data:bub,backgroundColor:ha(sc[0],.5),borderColor:sc[0],borderWidth:1,hoverBackgroundColor:ha(sc[1],.7)}]},options:bo});
  // 各覆盖国家命中策略明细表(曝光/充值率/总收入)
  const cbs=D.strat_by_country||{}, cks=Object.keys(cbs);
- g('cbys').innerHTML=cks.map(c=>`<div class="card"><h3 style="margin:0 0 8px">${c} · 命中 ${cbs[c].length} 策略</h3><div style="overflow-x:auto"><table><thead><tr><th style="text-align:left">策略</th><th>曝光uv</th><th>充值率</th><th>总收入</th></tr></thead><tbody>`+cbs[c].map(x=>`<tr><td style="text-align:left">${x.sl}</td><td>${int(x.exp)}</td><td>${x.rate}%</td><td>${usd(x.rev)}</td></tr>`).join('')+`</tbody></table></div></div>`).join('');
+ g('cbys').innerHTML=cks.map(c=>`<div class="card"><h3 style="margin:0 0 8px">${c} · 命中 ${cbs[c].length} 策略</h3><div style="overflow-x:auto"><table><thead><tr><th style="text-align:left">策略</th><th>曝光uv</th><th>充值率</th><th>订阅uv占比</th><th>总收入</th></tr></thead><tbody>`+cbs[c].map(x=>`<tr><td style="text-align:left">${x.sl}</td><td>${int(x.exp)}</td><td>${x.rate}%</td><td>${x.subr}%</td><td>${usd(x.rev)}</td></tr>`).join('')+`</tbody></table></div></div>`).join('');
  renderStratTable();
 }
 const renderSkuTable=makeFilterTable({rows:D.sku_detail,cols:D.sku_detail_cols,cIdx:1,pIdx:2,eIdx:4,countries:D.sku_list,selLabel:'全部SKU',

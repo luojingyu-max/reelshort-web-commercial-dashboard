@@ -225,7 +225,7 @@ panel1=strat["panel1"]+[p1row("韩国"), p1row("泰国")]
 # ---------- 面板策略明细(交叉表:日期×货架ID×策略) ----------
 P2C13=["美国","加拿大","澳大利亚","英国","法国","日本","意大利","巴西","墨西哥","智利","阿根廷","韩国","泰国"]
 sd_rows=[]; srev=defaultdict(lambda:{"p":0.0,"u":0.0}); sset=set()
-cbys=defaultdict(lambda:defaultdict(lambda:{"exp":0.0,"pay":0.0,"rev":0.0}))
+cbys=defaultdict(lambda:defaultdict(lambda:{"exp":0.0,"pay":0.0,"fo":0.0,"rev":0.0}))
 for r in ws(f"{D}/策略交叉表.xlsx").iter_rows(min_row=2, values_only=True):
     d=s2d(r[0])
     if not d or not re.match(r'2026-\d\d-\d\d',str(r[0])[:10]) or not r[2]: continue
@@ -235,11 +235,11 @@ for r in ws(f"{D}/策略交叉表.xlsx").iter_rows(min_row=2, values_only=True):
         round(num(r[13]),2), round(num(r[14]),2), round(num(r[15]))])
     srev[r[2]]["p" if pd=="已付费" else "u"]+=num(r[12]); sset.add(r[2])
     if r[3] in P2C13:
-        cbys[r[3]][r[2]]["exp"]+=num(r[5]); cbys[r[3]][r[2]]["pay"]+=num(r[7]); cbys[r[3]][r[2]]["rev"]+=num(r[12])
+        cbys[r[3]][r[2]]["exp"]+=num(r[5]); cbys[r[3]][r[2]]["pay"]+=num(r[7]); cbys[r[3]][r[2]]["fo"]+=num(r[11]); cbys[r[3]][r[2]]["rev"]+=num(r[12])
 def _sl(s): return s.replace("官网-","").replace("-kim","").replace("kim ","")
 strat_by_country={}; strat_bubble=[]
 for c in P2C13:
-    its=[{"sl":_sl(s),"exp":round(v["exp"]),"rate":round(v["pay"]/v["exp"]*100,2) if v["exp"] else 0,"rev":round(v["rev"],2)}
+    its=[{"sl":_sl(s),"exp":round(v["exp"]),"rate":round(v["pay"]/v["exp"]*100,2) if v["exp"] else 0,"subr":round(v["fo"]/v["pay"]*100,2) if v["pay"] else 0,"rev":round(v["rev"],2)}
          for s,v in cbys[c].items() if v["exp"]>0]
     its.sort(key=lambda x:-x["exp"])
     if its: strat_by_country[c]=its[:6]
