@@ -130,11 +130,9 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
   <div class="card"><h3>LTV 曲线 · 收入 Top6 国家</h3><p class="cap" id="cap_cltv">ltv0→ltv30 · $/人</p><div class="cwrap"><canvas id="c_cltv"></canvas></div></div>
   <div class="card"><h3>各国 LTV(全部国家)</h3><p class="cap">$/人 · ltv0 / ltv7 / ltv14 / ltv30</p><div style="overflow-x:auto;max-height:300px"><table id="t_cltv"></table></div></div>
  </div>
- <h2>各国漏斗率趋势(面板策略覆盖国家)</h2>
+ <h2>各国漏斗率趋势(面板策略覆盖国家 · 按盘口分组)</h2>
  <p class="sub" id="cap_funnel" style="margin:-6px 0 10px"></p>
- <div class="card" style="margin-bottom:12px"><h3>观看率(观看uv / DAU)</h3><div class="cwrap" style="height:300px"><canvas id="c_fv"></canvas></div></div>
- <div class="card" style="margin-bottom:12px"><h3>触达付费集率(触达付费集uv / DAU)</h3><div class="cwrap" style="height:300px"><canvas id="c_freach"></canvas></div></div>
- <div class="card" style="margin-bottom:12px"><h3>创建订单率(创建订单uv / DAU)</h3><div class="cwrap" style="height:300px"><canvas id="c_fo"></canvas></div></div>
+ <div id="funnel-cards"></div>
  <h2>国家+付费明细(国家×付费状态×日期 · 全量,可自由筛选)</h2>
  <div class="card">
   <div class="filters">
@@ -347,12 +345,17 @@ function renderCountry(){
  document.getElementById('cap_cltv').textContent='ltv0→ltv30 · $/人 · 成熟批次(≤'+cl.mature_cut+')';
  document.getElementById('t_cltv').innerHTML='<thead><tr><th>国家</th><th>LTV0</th><th>LTV7</th><th>LTV14</th><th>LTV30</th></tr></thead><tbody>'+
   D.country_ltv_table.map(r=>`<tr><td>${r.c}</td><td>${ltvf(r.ltv0)}</td><td>${ltvf(r.ltv7)}</td><td>${ltvf(r.ltv14)}</td><td>${ltvf(r.ltv30)}</td></tr>`).join('')+'</tbody>';
- // 各国漏斗率日趋势(Top11)
- const F=D.funnel||{dates:[],countries:[]}, P13=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#8b5cf6','#00b8d4','#c0396b','#7a5c3e','#4f7a21','#9c27b0','#5d4037'];
- function fchart(id,key){let o=base();o.interaction={mode:'nearest',intersect:false};o.scales.x.ticks.maxTicksLimit=10;o.scales.y.ticks.callback=v=>v+'%';o.plugins.legend.labels.boxWidth=10;o.plugins.legend.labels.font={size:10};
-  mk(id,{type:'line',data:{labels:F.dates,datasets:F.countries.map((c,i)=>({label:c,data:F[key][c],borderColor:P13[i%13],backgroundColor:P13[i%13],borderWidth:1.8,pointRadius:0,pointHoverRadius:3,tension:.25,fill:false,spanGaps:true}))},options:o});}
- fchart('c_fv','view'); fchart('c_freach','reach'); fchart('c_fo','order');
- g('cap_funnel').textContent='曝光→触达付费集→创建订单 各步渗透率(均以 DAU 为分母)· 面板策略覆盖国家('+F.countries.length+'国)· '+(F.dates.length?F.dates[0]+' ~ '+F.dates[F.dates.length-1]:'');
+ // 各国漏斗率日趋势(按盘口分组,组内国家可筛选)
+ const F=D.funnel||{dates:[],groups:[],raw:{}}, sc3=SC();
+ g('funnel-cards').innerHTML=F.groups.map((grp,i)=>`<div class="card" style="margin-bottom:12px"><div class="filters" style="align-items:center"><h3 style="margin:0 8px 0 0">${grp.name}</h3><label>国家 <select id="fsel${i}"><option>全部</option>${grp.countries.map(c=>`<option>${c}</option>`).join('')}</select></label></div><div class="cwrap" style="height:290px"><canvas id="fc${i}"></canvas></div></div>`).join('');
+ function fdraw(i){const grp=F.groups[i], sel=g('fsel'+i).value, cs=(sel==='全部')?grp.countries:[sel], n=F.dates.length;
+  const sum=key=>{let a=new Array(n).fill(0); cs.forEach(c=>{const r=F.raw[c]; if(r)for(let j=0;j<n;j++)a[j]+=r[key][j];}); return a;};
+  const dd=sum('dau'), rate=arr=>arr.map((x,j)=>dd[j]?+(x/dd[j]*100).toFixed(3):null);
+  let o=base();o.interaction={mode:'index',intersect:false};o.scales.x.ticks.maxTicksLimit=9;
+  o.scales.y.type='logarithmic';o.scales.y.ticks.callback=v=>{const Lv=[0.2,0.5,1,2,5,10,20,50];return Lv.indexOf(v)>=0?v+'%':'';};
+  mk('fc'+i,{type:'line',data:{labels:F.dates,datasets:[L(rate(sum('view')),sc3[0],'观看率'),L(rate(sum('reach')),sc3[1],'触达付费集率'),L(rate(sum('order')),sc3[2],'创建订单率')]},options:o});}
+ F.groups.forEach((_,i)=>{g('fsel'+i).addEventListener('change',()=>fdraw(i)); fdraw(i);});
+ g('cap_funnel').textContent='曝光→触达付费集→创建订单 三步渗透率(/DAU · 对数轴)· 按盘口分 5 组,组内国家可筛选(默认=组内汇总)· '+(F.dates.length?F.dates[0]+' ~ '+F.dates[F.dates.length-1]:'');
  renderCountryDetail();
 }
 function grouped(id,rows,ka,kb){const sc=SC();let o=base();o.scales.x.ticks.autoSkip=false;o.scales.x.ticks.maxRotation=50;o.scales.x.ticks.minRotation=50;

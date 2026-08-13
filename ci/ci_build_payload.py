@@ -148,23 +148,18 @@ country_ltv_table=[{"c":c,"ltv0":country_ltv["curve"][c][0],"ltv7":country_ltv["
 # ---------- 各国漏斗率日趋势(收入 Top11) ----------
 fstart=(md-datetime.timedelta(days=44)).isoformat()
 funnel_dates=sorted({x["d"] for x in recs if x["d"]>=fstart})
-_cov=["美国","加拿大","澳大利亚","英国","法国","日本","意大利","巴西","墨西哥","智利","阿根廷","韩国","泰国"]
+_grp=[("美加澳英",["美国","加拿大","澳大利亚","英国"]),("法/意/日",["法国","意大利","日本"]),
+      ("墨/智/阿",["墨西哥","智利","阿根廷"]),("巴西",["巴西"]),("韩/泰",["韩国","泰国"])]
 _cset={x["c"] for x in recs}
-funnel_top=[c for c in _cov if c in _cset]
+funnel_cty=[c for _,cs in _grp for c in cs if c in _cset]
 _fa=defaultdict(lambda:{"v":0.0,"rc":0.0,"o":0.0,"d":0.0})
 for x in recs:
-    if x["c"] in funnel_top and x["d"]>=fstart:
+    if x["c"] in funnel_cty and x["d"]>=fstart:
         a=_fa[(x["c"],x["d"])]; a["v"]+=x["view"]; a["rc"]+=x["reach"]; a["o"]+=x["order"]; a["d"]+=x["dau"]
-def _frate(c,m):
-    o=[]
-    for d in funnel_dates:
-        a=_fa.get((c,d))
-        o.append(round(a[m]/a["d"]*100,3) if (a and a["d"]) else None)
-    return o
-funnel={"dates":funnel_dates,"countries":funnel_top,
-        "view":{c:_frate(c,"v") for c in funnel_top},
-        "reach":{c:_frate(c,"rc") for c in funnel_top},
-        "order":{c:_frate(c,"o") for c in funnel_top}}
+def _raw(c,m): return [round(_fa[(c,d)][m]) if (c,d) in _fa else 0 for d in funnel_dates]
+funnel={"dates":funnel_dates,
+        "groups":[{"name":n,"countries":[c for c in cs if c in _cset]} for n,cs in _grp],
+        "raw":{c:{"view":_raw(c,"v"),"reach":_raw(c,"rc"),"order":_raw(c,"o"),"dau":_raw(c,"d")} for c in funnel_cty}}
 detail=[]
 for x in sorted(recs,key=lambda r:(r["d"],r["c"])):
     detail.append([x["d"],x["c"],"已付费" if x["paid"] else "未付费",round(x["dau"]),round(x["uv"]),round(x["sub"]),
