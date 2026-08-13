@@ -350,12 +350,12 @@ function renderCountry(){
  g('funnel-cards').innerHTML=F.groups.map((grp,i)=>`<div class="card" style="margin-bottom:12px"><div class="filters" style="align-items:center"><h3 style="margin:0 8px 0 0">${grp.name}</h3><label>国家 <select id="fsel${i}"><option>全部</option>${grp.countries.map(c=>`<option>${c}</option>`).join('')}</select></label></div><div class="cwrap" style="height:290px"><canvas id="fc${i}"></canvas></div></div>`).join('');
  function fdraw(i){const grp=F.groups[i], sel=g('fsel'+i).value, cs=(sel==='全部')?grp.countries:[sel], n=F.dates.length;
   const sum=key=>{let a=new Array(n).fill(0); cs.forEach(c=>{const r=F.raw[c]; if(r)for(let j=0;j<n;j++)a[j]+=r[key][j];}); return a;};
-  const vv=sum('view'),rc=sum('reach'),oo=sum('order'),dd=sum('dau');
+  const vv=sum('view'),rc=sum('reach'),oo=sum('order'),pp=sum('pay'),dd=sum('dau');
   const div=(a,b)=>a.map((x,j)=>b[j]?+(x/b[j]*100).toFixed(2):null);
   let o=base();o.interaction={mode:'index',intersect:false};o.scales.x.ticks.maxTicksLimit=9;o.scales.y.ticks.callback=v=>v+'%';
-  mk('fc'+i,{type:'line',data:{labels:F.dates,datasets:[L(div(vv,dd),sc3[0],'观看率(观看/DAU)'),L(div(rc,vv),sc3[1],'触达付费集率(触达/观看)'),L(div(oo,rc),sc3[2],'创建订单率(订单/触达)')]},options:o});}
+  mk('fc'+i,{type:'line',data:{labels:F.dates,datasets:[L(div(vv,dd),sc3[0],'观看率(观看/DAU)'),L(div(rc,vv),sc3[1],'触达付费集率(触达/观看)'),L(div(oo,rc),sc3[2],'创建订单率(订单/触达)'),L(div(pp,oo),sc3[3],'付费率(付费/下单)')]},options:o});}
  F.groups.forEach((_,i)=>{g('fsel'+i).addEventListener('change',()=>fdraw(i)); fdraw(i);});
- g('cap_funnel').textContent='漏斗逐级转化率:观看率=观看uv/DAU、触达付费集率=触达uv/观看uv、创建订单率=订单uv/触达uv · 按盘口分 5 组,组内国家可筛选(默认=组内汇总)· '+(F.dates.length?F.dates[0]+' ~ '+F.dates[F.dates.length-1]:'');
+ g('cap_funnel').textContent='漏斗逐级转化率:观看率=观看/DAU、触达付费集率=触达/观看、创建订单率=订单/触达、付费率=付费/下单 · 按盘口分 5 组,组内国家可筛选(默认=组内汇总)· '+(F.dates.length?F.dates[0]+' ~ '+F.dates[F.dates.length-1]:'');
  renderCountryDetail();
 }
 function grouped(id,rows,ka,kb){const sc=SC();let o=base();o.scales.x.ticks.autoSkip=false;o.scales.x.ticks.maxRotation=50;o.scales.x.ticks.minRotation=50;

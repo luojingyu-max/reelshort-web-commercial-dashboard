@@ -152,14 +152,14 @@ _grp=[("美加澳英",["美国","加拿大","澳大利亚","英国"]),("法/意/
       ("墨/智/阿",["墨西哥","智利","阿根廷"]),("巴西",["巴西"]),("韩/泰",["韩国","泰国"])]
 _cset={x["c"] for x in recs}
 funnel_cty=[c for _,cs in _grp for c in cs if c in _cset]
-_fa=defaultdict(lambda:{"v":0.0,"rc":0.0,"o":0.0,"d":0.0})
+_fa=defaultdict(lambda:{"v":0.0,"rc":0.0,"o":0.0,"p":0.0,"d":0.0})
 for x in recs:
     if x["c"] in funnel_cty and x["d"]>=fstart:
-        a=_fa[(x["c"],x["d"])]; a["v"]+=x["view"]; a["rc"]+=x["reach"]; a["o"]+=x["order"]; a["d"]+=x["dau"]
+        a=_fa[(x["c"],x["d"])]; a["v"]+=x["view"]; a["rc"]+=x["reach"]; a["o"]+=x["order"]; a["p"]+=x["uv"]; a["d"]+=x["dau"]
 def _raw(c,m): return [round(_fa[(c,d)][m]) if (c,d) in _fa else 0 for d in funnel_dates]
 funnel={"dates":funnel_dates,
         "groups":[{"name":n,"countries":[c for c in cs if c in _cset]} for n,cs in _grp],
-        "raw":{c:{"view":_raw(c,"v"),"reach":_raw(c,"rc"),"order":_raw(c,"o"),"dau":_raw(c,"d")} for c in funnel_cty}}
+        "raw":{c:{"view":_raw(c,"v"),"reach":_raw(c,"rc"),"order":_raw(c,"o"),"pay":_raw(c,"p"),"dau":_raw(c,"d")} for c in funnel_cty}}
 detail=[]
 for x in sorted(recs,key=lambda r:(r["d"],r["c"])):
     detail.append([x["d"],x["c"],"已付费" if x["paid"] else "未付费",round(x["dau"]),round(x["uv"]),round(x["sub"]),
