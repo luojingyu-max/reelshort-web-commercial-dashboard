@@ -122,6 +122,10 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
   <div class="card"><h3>收入 Top10 国家(已付费 vs 未付费)</h3><p class="cap" id="cap_cstack"></p><div class="cwrap"><canvas id="c_cstack"></canvas></div></div>
   <div class="card"><h3>收入 Top10 · 月环比 MoM</h3><p class="cap" id="cap_cmom"></p><div class="cwrap"><canvas id="c_mom"></canvas></div></div>
  </div>
+ <div class="grid2" style="margin-top:12px">
+  <div class="card"><h3>盘口覆盖国家 vs 其余国家 · 收入占比</h3><p class="cap" id="cap_covpie"></p><div class="cwrap" style="height:300px"><canvas id="c_covpie"></canvas></div></div>
+  <div class="card"><h3>说明</h3><p class="cap" style="line-height:1.8" id="cap_covnote"></p></div>
+ </div>
  <h2>盘口覆盖国家 KPI 明细(带月/周环比 · 含漏斗)</h2>
  <p class="sub" id="cap_ctab" style="margin:-6px 0 10px"></p>
  <div class="card"><div style="overflow-x:auto"><table id="t_ctab"></table></div></div>
@@ -333,6 +337,14 @@ function renderCountry(){
  const w=D.cwindows;
  document.getElementById('cwin-note').innerHTML=`月环比 = 本月至今 <b>${w.month[0]}~${w.month[1]}</b> vs 上月同期 <b>${w.lastmonth[0]}~${w.lastmonth[1]}</b> · 周环比 = <b>${w.week[0]}~${w.week[1]}</b> vs <b>${w.pastweek[0]}~${w.pastweek[1]}</b>。收入区分已付费/未付费。`;
  const R=D.ranges||{};
+ // 盘口覆盖 vs 其余 收入占比(本月至今)
+ const covSet={}; Object.keys(D.strat_by_country||{}).forEach(x=>covSet[x]=1);
+ let covRev=0,restRev=0; ct.forEach(x=>{ x.c in covSet? covRev+=x.rev : restRev+=x.rev; });
+ const totRev=covRev+restRev||1;
+ mk('c_covpie',{type:'doughnut',data:{labels:['盘口覆盖 13 国','其余国家'],datasets:[{data:[Math.round(covRev),Math.round(restRev)],backgroundColor:[sc[0],css('--axis')],borderColor:css('--surface'),borderWidth:2}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'right',labels:{color:css('--ink2'),usePointStyle:true,pointStyle:'rectRounded',boxWidth:12}},tooltip:{callbacks:{label:c=>c.label+': '+usd(c.raw)+' ('+(c.raw/totRev*100).toFixed(1)+'%)'}}}}});
+ g('cap_covpie').textContent='本月至今 '+R.country+' · 官网直充收入';
+ g('cap_covnote').innerHTML='盘口覆盖 13 国(表1 点名:美加澳英/法意日/墨智阿/巴西/韩泰)本月贡献 <b>'+usd(covRev)+'</b>(<b>'+(covRev/totRev*100).toFixed(1)+'%</b>),其余 '+(ct.length-13)+' 国合计 <b>'+usd(restRev)+'</b>('+(restRev/totRev*100).toFixed(1)+'%)。';
  g('cap_cstack').textContent='本月至今 '+R.country+' · $ · 堆叠 · 收入前10';
  g('cap_cmom').textContent='本月至今 '+R.country+' vs 上月同期 '+R.country_prev+' · %';
  g('cap_ctab').textContent='时间窗口:本月至今 '+R.country+' · 仅列盘口覆盖国家(按盘口分组)。漏斗逐级转化:观看率=观看/DAU、触达付费集率=触达/观看、创建订单率=订单/触达;付费率=充值uv/DAU;ARPU=总收入/DAU。全量国家见下方明细。';
