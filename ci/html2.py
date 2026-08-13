@@ -353,9 +353,9 @@ function renderCountry(){
   const vv=sum('view'),rc=sum('reach'),oo=sum('order'),pp=sum('pay'),dd=sum('dau');
   const div=(a,b)=>a.map((x,j)=>b[j]?+(x/b[j]*100).toFixed(2):null);
   let o=base();o.interaction={mode:'index',intersect:false};o.scales.x.ticks.maxTicksLimit=9;o.scales.y.ticks.callback=v=>v+'%';
-  mk('fc'+i,{type:'line',data:{labels:F.dates,datasets:[L(div(vv,dd),sc3[0],'观看率(观看/DAU)'),L(div(rc,vv),sc3[1],'触达付费集率(触达/观看)'),L(div(oo,rc),sc3[2],'创建订单率(订单/触达)'),L(div(pp,oo),sc3[3],'付费率(付费/下单)')]},options:o});}
+  mk('fc'+i,{type:'line',data:{labels:F.dates,datasets:[L(div(vv,dd),sc3[0],'观看率(观看/DAU)'),L(div(rc,vv),sc3[1],'触达付费集率(触达/观看)'),L(div(oo,rc),sc3[2],'创建订单率(订单/触达)'),L(div(pp,dd),sc3[3],'付费率(充值uv/DAU)')]},options:o});}
  F.groups.forEach((_,i)=>{g('fsel'+i).addEventListener('change',()=>fdraw(i)); fdraw(i);});
- g('cap_funnel').textContent='漏斗逐级转化率:观看率=观看/DAU、触达付费集率=触达/观看、创建订单率=订单/触达、付费率=付费/下单 · 按盘口分 5 组,组内国家可筛选(默认=组内汇总)· '+(F.dates.length?F.dates[0]+' ~ '+F.dates[F.dates.length-1]:'');
+ g('cap_funnel').textContent='漏斗逐级转化率:观看率=观看/DAU、触达付费集率=触达/观看、创建订单率=订单/触达、付费率=充值uv/DAU · 按盘口分 5 组,组内国家可筛选(默认=组内汇总)· '+(F.dates.length?F.dates[0]+' ~ '+F.dates[F.dates.length-1]:'');
  renderCountryDetail();
 }
 function grouped(id,rows,ka,kb){const sc=SC();let o=base();o.scales.x.ticks.autoSkip=false;o.scales.x.ticks.maxRotation=50;o.scales.x.ticks.minRotation=50;
