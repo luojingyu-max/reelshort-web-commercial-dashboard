@@ -105,7 +105,7 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
  <h2>各国排行 Top20 · 策略覆盖诊断</h2>
  <p class="sub" style="margin:-6px 0 10px">🔵 已覆盖(表1 有专属策略) · 🔴 未覆盖·建议上新 · ⚪ 未覆盖·维持兜底。<b>判定逻辑:</b>未覆盖国家该指标 ≥ 已覆盖 13 国的中位数 → 值得<b>上新专属策略</b>(体量够、却只吃兜底);否则维持兜底面板。本月至今口径。</p>
  <div class="card" style="margin-bottom:12px"><h3>总收入 Top20 国家</h3><p class="cap" id="cap_t20rev"></p><div class="cwrap" style="height:470px"><canvas id="c_t20rev"></canvas></div></div>
- <div class="card" style="margin-bottom:12px"><h3>付费率 Top20 国家(日均DAU≥100,去小样本噪声)</h3><p class="cap" id="cap_t20pay"></p><div class="cwrap" style="height:470px"><canvas id="c_t20pay"></canvas></div></div>
+ <div class="card" style="margin-bottom:12px"><h3>付费率 Top20 国家(仅收录日均DAU≥1000)</h3><p class="cap" id="cap_t20pay"></p><div class="cwrap" style="height:470px"><canvas id="c_t20pay"></canvas></div></div>
  <div class="card" style="margin-bottom:12px"><h3>订阅金额 Top20 国家</h3><p class="cap" id="cap_t20sub"></p><div class="cwrap" style="height:470px"><canvas id="c_t20sub"></canvas></div></div>
  <h2>大盘明细(官网大盘 · 逐日全字段)</h2>
  <div class="card">
@@ -305,19 +305,25 @@ document.getElementById('minis').innerHTML=MINIS.map((m,i)=>{
 
 /* ---- render per tab ---- */
 const done={};
-function top20chart(id,capId,metric,fmt,floor){
+function top20chart(id,capId,metric,fmt,floor,rateMode){
  const sc=SC(), cov={}; Object.keys(D.strat_by_country||{}).forEach(c=>cov[c]=1);
  const pool=(D.ctab||[]).filter(x=>x.rev>0 && (!floor||x.dau>=floor) && (x[metric]||0)>0);
  const rows=pool.slice().sort((a,b)=>(b[metric]||0)-(a[metric]||0)).slice(0,20);
  const cv=(D.ctab||[]).filter(x=>cov[x.c]).map(x=>x[metric]||0).sort((a,b)=>a-b);
- const med=cv.length?cv[Math.floor((cv.length-1)/2)]:0, RED='#d64550', GRAY=css('--axis');
- const colr=x=>cov[x.c]?sc[0]:((x[metric]||0)>=med?RED:GRAY);
+ const med=cv.length?cv[Math.floor((cv.length-1)/2)]:0;
+ const dc=(D.ctab||[]).filter(x=>cov[x.c]).map(x=>x.dau).sort((a,b)=>a-b);
+ const dauMed=dc.length?dc[Math.floor((dc.length-1)/2)]:0;
+ const RED='#d64550', GRAY=css('--axis'), YEL='#eda100';
+ function rec(x){ if(cov[x.c])return['已覆盖',sc[0]];
+   if((x[metric]||0)<med)return['⚪维持兜底',GRAY];
+   if(rateMode && x.dau<dauMed)return['🟡关注·付费率高但DAU规模偏小',YEL];
+   return['🔴建议上新专属策略',RED]; }
  let o=base();o.indexAxis='y';o.plugins.legend.display=false;o.scales.x.grid.color=css('--grid');o.scales.y.grid.color='transparent';o.scales.y.ticks.autoSkip=false;o.scales.y.ticks.font={size:10};
  o.scales.x.ticks.callback=metric==='payrate'?(v=>v+'%'):(v=>'$'+(v>=1000?(v/1000).toFixed(0)+'k':v));
- o.plugins.tooltip.callbacks={label:c=>{const x=rows[c.dataIndex];const rec=cov[x.c]?'已覆盖':((x[metric]||0)>=med?'🔴建议上新专属策略':'⚪维持兜底');return fmt(x[metric]||0)+' · '+rec;}};
- mk(id,{type:'bar',data:{labels:rows.map(x=>x.c),datasets:[{data:rows.map(x=>x[metric]||0),backgroundColor:rows.map(colr),borderRadius:3,barThickness:11}]},options:o});
- const up=rows.filter(x=>!cov[x.c]&&(x[metric]||0)>=med).map(x=>x.c);
- g(capId).innerHTML='已覆盖13国中位数='+fmt(med)+' · 🔴 建议上新专属策略:<b>'+(up.join('、')||'无')+'</b>';
+ o.plugins.tooltip.callbacks={label:c=>{const x=rows[c.dataIndex];return fmt(x[metric]||0)+' · DAU'+int(x.dau)+' · '+rec(x)[0];}};
+ mk(id,{type:'bar',data:{labels:rows.map(x=>x.c),datasets:[{data:rows.map(x=>x[metric]||0),backgroundColor:rows.map(x=>rec(x)[1]),borderRadius:3,barThickness:11}]},options:o});
+ const up=rows.filter(x=>rec(x)[1]===RED).map(x=>x.c), watch=rows.filter(x=>rec(x)[1]===YEL).map(x=>x.c);
+ g(capId).innerHTML='已覆盖13国中位数='+fmt(med)+(rateMode?'(DAU中位数'+int(dauMed)+')':'')+' · 🔴 建议上新:<b>'+(up.join('、')||'无')+'</b>'+(rateMode?' · 🟡 关注(规模偏小):'+(watch.join('、')||'无'):'');
 }
 function renderDash(){
  const sc=SC();
@@ -343,7 +349,7 @@ function renderDash(){
   o.scales.x.display=true;o.scales.x.grid.display=false;o.scales.x.ticks.maxTicksLimit=2;o.scales.x.ticks.maxRotation=0;o.scales.x.ticks.font={size:9};o.scales.x.ticks.color=css('--muted');o.scales.y.display=false;o.elements={point:{radius:0}};
   mk('mini'+i,{type:'line',data:{labels:D.dates,datasets:[{data:m[1],borderColor:css('--s1'),borderWidth:1.8,pointRadius:0,pointHoverRadius:3,tension:.3,fill:true,backgroundColor:'rgba(42,120,214,.10)'}]},options:o});});
  top20chart('c_t20rev','cap_t20rev','rev',usd,0);
- top20chart('c_t20pay','cap_t20pay','payrate',v=>Number(v).toFixed(3)+'%',100);
+ top20chart('c_t20pay','cap_t20pay','payrate',v=>Number(v).toFixed(3)+'%',1000,true);
  top20chart('c_t20sub','cap_t20sub','subrev',usd,0);
  renderSiteDetail();
 }
