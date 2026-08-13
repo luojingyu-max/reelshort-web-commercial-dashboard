@@ -103,7 +103,7 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
   <div class="card"><h3>引流App 付费/订阅 UV</h3><p class="cap" id="cap_appuv"></p><div class="cwrap"><canvas id="c_appuv"></canvas></div></div>
  </div>
  <h2>各国排行 Top20 · 策略覆盖诊断</h2>
- <p class="sub" style="margin:-6px 0 10px">🔵 已覆盖(表1 有专属策略) · 🔴 未覆盖·建议上新 · ⚪ 未覆盖·维持兜底。<b>判定逻辑:</b>未覆盖国家该指标 ≥ 已覆盖 13 国的中位数 → 值得<b>上新专属策略</b>(体量够、却只吃兜底);否则维持兜底面板。本月至今口径。</p>
+ <p class="sub" style="margin:-6px 0 10px">颜色=<b>综合评估结论</b>(DAU/付费率/订阅率/续订率/收入 一起看,均对比已覆盖 13 国中位数):🔵 已覆盖 · 🔴 <b>新增·提价</b>(值得上新且转化&续订双高,支付意愿强) · 🟠 <b>新增·降价</b>(值得上新但转化或续订偏弱,靠降价换量/保留) · ⚪ 维持兜底(规模/收入不足)。判定"值得新增"=收入≥中位数 或(DAU≥中位数且付费率≥中位数)。悬停看各指标。本月至今口径。</p>
  <div class="card" style="margin-bottom:12px"><h3>总收入 Top20 国家</h3><p class="cap" id="cap_t20rev"></p><div class="cwrap" style="height:470px"><canvas id="c_t20rev"></canvas></div></div>
  <div class="card" style="margin-bottom:12px"><h3>付费率 Top20 国家(仅收录日均DAU≥1000)</h3><p class="cap" id="cap_t20pay"></p><div class="cwrap" style="height:470px"><canvas id="c_t20pay"></canvas></div></div>
  <div class="card" style="margin-bottom:12px"><h3>订阅金额 Top20 国家</h3><p class="cap" id="cap_t20sub"></p><div class="cwrap" style="height:470px"><canvas id="c_t20sub"></canvas></div></div>
@@ -305,25 +305,27 @@ document.getElementById('minis').innerHTML=MINIS.map((m,i)=>{
 
 /* ---- render per tab ---- */
 const done={};
-function top20chart(id,capId,metric,fmt,floor,rateMode){
+function top20chart(id,capId,metric,fmt,floor){
  const sc=SC(), cov={}; Object.keys(D.strat_by_country||{}).forEach(c=>cov[c]=1);
  const pool=(D.ctab||[]).filter(x=>x.rev>0 && (!floor||x.dau>=floor) && (x[metric]||0)>0);
  const rows=pool.slice().sort((a,b)=>(b[metric]||0)-(a[metric]||0)).slice(0,20);
- const cv=(D.ctab||[]).filter(x=>cov[x.c]).map(x=>x[metric]||0).sort((a,b)=>a-b);
- const med=cv.length?cv[Math.floor((cv.length-1)/2)]:0;
- const dc=(D.ctab||[]).filter(x=>cov[x.c]).map(x=>x.dau).sort((a,b)=>a-b);
- const dauMed=dc.length?dc[Math.floor((dc.length-1)/2)]:0;
- const RED='#d64550', GRAY=css('--axis'), YEL='#eda100';
- function rec(x){ if(cov[x.c])return['已覆盖',sc[0]];
-   if((x[metric]||0)<med)return['⚪维持兜底',GRAY];
-   if(rateMode && x.dau<dauMed)return['🟡关注·付费率高但DAU规模偏小',YEL];
-   return['🔴建议上新专属策略',RED]; }
+ const md=k=>{const v=(D.ctab||[]).filter(x=>cov[x.c]).map(x=>x[k]||0).sort((a,b)=>a-b);return v.length?v[Math.floor((v.length-1)/2)]:0;};
+ const medRev=md('rev'),medDau=md('dau'),medPay=md('payrate'),medRen=md('renewrate');
+ const BLUE=sc[0],RED='#d64550',ORA='#eb6834',GRAY=css('--axis');
+ function rec(x){
+   if(cov[x.c])return['已覆盖',BLUE];
+   const worth=(x.rev>=medRev)||(x.dau>=medDau && x.payrate>=medPay);   // 收入够 或 (盘子大+转化好)
+   if(!worth)return['⚪维持兜底(规模/收入不足)',GRAY];
+   const strong=(x.payrate>=medPay)&&((x.renewrate||0)>=medRen);        // 转化&续订双高→提价;否则降价换量
+   return strong?['🔴新增·提价(转化&续订双高)',RED]:['🟠新增·降价('+(x.payrate<medPay?'转化偏弱':'续订偏弱')+')',ORA];
+ }
  let o=base();o.indexAxis='y';o.plugins.legend.display=false;o.scales.x.grid.color=css('--grid');o.scales.y.grid.color='transparent';o.scales.y.ticks.autoSkip=false;o.scales.y.ticks.font={size:10};
  o.scales.x.ticks.callback=metric==='payrate'?(v=>v+'%'):(v=>'$'+(v>=1000?(v/1000).toFixed(0)+'k':v));
- o.plugins.tooltip.callbacks={label:c=>{const x=rows[c.dataIndex];return fmt(x[metric]||0)+' · DAU'+int(x.dau)+' · '+rec(x)[0];}};
+ o.plugins.tooltip.callbacks={label:c=>{const x=rows[c.dataIndex];return [fmt(x[metric]||0)+' · '+rec(x)[0],
+   'DAU '+int(x.dau)+' · 付费率 '+Number(x.payrate).toFixed(3)+'% · 订阅率 '+Number(x.subrate).toFixed(3)+'% · 续订率 '+Number(x.renewrate||0).toFixed(0)+'%'];}};
  mk(id,{type:'bar',data:{labels:rows.map(x=>x.c),datasets:[{data:rows.map(x=>x[metric]||0),backgroundColor:rows.map(x=>rec(x)[1]),borderRadius:3,barThickness:11}]},options:o});
- const up=rows.filter(x=>rec(x)[1]===RED).map(x=>x.c), watch=rows.filter(x=>rec(x)[1]===YEL).map(x=>x.c);
- g(capId).innerHTML='已覆盖13国中位数='+fmt(med)+(rateMode?'(DAU中位数'+int(dauMed)+')':'')+' · 🔴 建议上新:<b>'+(up.join('、')||'无')+'</b>'+(rateMode?' · 🟡 关注(规模偏小):'+(watch.join('、')||'无'):'');
+ const up=rows.filter(x=>rec(x)[1]===RED).map(x=>x.c), dn=rows.filter(x=>rec(x)[1]===ORA).map(x=>x.c);
+ g(capId).innerHTML='综合 DAU/付费率/订阅率/续订率/收入(vs覆盖国中位数)· 🔴 新增·提价:<b>'+(up.join('、')||'无')+'</b> · 🟠 新增·降价:<b>'+(dn.join('、')||'无')+'</b>';
 }
 function renderDash(){
  const sc=SC();
@@ -349,7 +351,7 @@ function renderDash(){
   o.scales.x.display=true;o.scales.x.grid.display=false;o.scales.x.ticks.maxTicksLimit=2;o.scales.x.ticks.maxRotation=0;o.scales.x.ticks.font={size:9};o.scales.x.ticks.color=css('--muted');o.scales.y.display=false;o.elements={point:{radius:0}};
   mk('mini'+i,{type:'line',data:{labels:D.dates,datasets:[{data:m[1],borderColor:css('--s1'),borderWidth:1.8,pointRadius:0,pointHoverRadius:3,tension:.3,fill:true,backgroundColor:'rgba(42,120,214,.10)'}]},options:o});});
  top20chart('c_t20rev','cap_t20rev','rev',usd,0);
- top20chart('c_t20pay','cap_t20pay','payrate',v=>Number(v).toFixed(3)+'%',1000,true);
+ top20chart('c_t20pay','cap_t20pay','payrate',v=>Number(v).toFixed(3)+'%',1000);
  top20chart('c_t20sub','cap_t20sub','subrev',usd,0);
  renderSiteDetail();
 }

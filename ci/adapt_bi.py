@@ -37,7 +37,7 @@ for r in nb["官网监控明细数据"].iter_rows(min_row=3, values_only=True):
     o=[0]*63
     o[0]=str(r[0])[:10]; o[1]=r[2]; o[2]=r[1]; o[3]="ALL"
     o[4]=r[4]; o[5]=r[5]; o[7]=r[7]; o[9]=r[9]; o[11]=r[13]; o[12]=r[12]
-    o[14]=r[15]; o[16]=r[17]; o[22]=r[23]; o[25]=r[26]; o[30]=r[31]   # +订阅(续订)收入
+    o[14]=r[15]; o[16]=r[17]; o[20]=r[21]; o[22]=r[23]; o[25]=r[26]; o[30]=r[31]   # +续订uv +订阅(续订)收入
     for k in range(31): o[32+k]=r[33+k]
     w.append(o); add+=1
 out.save(f"{D}/官网监控明细_recent.xlsx"); print("官网监控明细 (界<%s): 保留%d + 新增%d"%(cut,kept,add))
