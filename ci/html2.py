@@ -196,7 +196,7 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
 
 <section class="panel" id="p-weekly">
  <h2>产运周报 · 官网+社媒(按周查看)</h2>
- <div class="card"><div class="filters"><label>选择周 <select id="wk_sel"></select></label><span class="badge" id="wk_src"></span></div></div>
+ <div class="card"><div class="filters"><label>选择周 <select id="wk_sel"></select></label><button class="fbtn" id="wk_copy" title="复制本周周报(含表格),粘贴进 Lark 文档即为原生表格">📋 复制到 Lark 文档</button><span class="badge" id="wk_src"></span></div></div>
  <div id="wk_body"></div>
 </section>
 
@@ -529,9 +529,26 @@ function drawWeek(){
  h+='<div class="card" style="margin-top:12px"><h3>社媒</h3><div class="concl">'+(w.social||'暂无数据')+'</div></div>';
  g('wk_body').innerHTML=h;
 }
+function copyWeekLark(){
+ const w=WR.weeks[+g('wk_sel').value||0]; if(!w) return;
+ const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+ const htbl=o=>{if(!o||!o.cols)return'';return '<table border="1" cellspacing="0" cellpadding="5" style="border-collapse:collapse;font-size:13px"><thead><tr>'+o.cols.map(c=>`<th style="background:#f0f2f5">${esc(c)}</th>`).join('')+'</tr></thead><tbody>'+o.rows.map(r=>'<tr>'+r.map(v=>`<td>${esc(v)}</td>`).join('')+'</tr>').join('')+'</tbody></table>';};
+ const ttbl=o=>{if(!o||!o.cols)return'';return o.cols.join('\t')+'\n'+o.rows.map(r=>r.join('\t')).join('\n')+'\n';};
+ let H=`<h3>产运周报 · ${esc(w.date)}</h3>`, T=`产运周报 · ${w.date}\n\n`;
+ if(w.summary&&w.summary.length){H+='<p><b>本周摘要</b></p><ul>'+w.summary.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>'; T+='【本周摘要】\n'+w.summary.map(s=>'• '+s).join('\n')+'\n\n';}
+ if(w.dapan){H+='<p><b>大盘数据回收</b></p>'+htbl(w.dapan); T+='【大盘数据回收】\n'+ttbl(w.dapan)+'\n';}
+ if(w.phase2){H+=`<p><b>二期面板策略数据回收</b><br><i>${esc(w.phase2.note||'')}</i></p>`+htbl(w.phase2); T+='【二期面板策略数据回收】\n'+(w.phase2.note||'')+'\n'+ttbl(w.phase2)+'\n';}
+ if(w.ab){H+=`<p><b>AB 实验 · 美国 12.99 周卡</b><br><i>${esc(w.ab.note||'')}</i></p>`+htbl(w.ab); T+='【AB 实验 · 美国 12.99 周卡】\n'+(w.ab.note||'')+'\n'+ttbl(w.ab)+'\n';}
+ if(w.concl&&w.concl.length){H+='<p><b>结论与现状</b></p><ul>'+w.concl.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>'; T+='【结论与现状】\n'+w.concl.map(s=>'• '+s).join('\n')+'\n';}
+ const btn=g('wk_copy'), ok=()=>{const o=btn.textContent; btn.textContent='✅ 已复制,去 Lark 粘贴'; setTimeout(()=>btn.textContent=o,2200);};
+ if(navigator.clipboard&&window.ClipboardItem){
+   navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([H],{type:'text/html'}),'text/plain':new Blob([T],{type:'text/plain'})})]).then(ok,()=>cpFallback(T,ok));
+ }else cpFallback(T,ok);
+}
+function cpFallback(t,ok){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');ok();}catch(e){alert('复制失败,请手动选择');}document.body.removeChild(ta);}
 function renderWeekly(){
  const sel=g('wk_sel');
- if(!sel.dataset.init){ sel.innerHTML=(WR.weeks||[]).map((w,i)=>`<option value="${i}">${w.date}</option>`).join(''); sel.addEventListener('change',drawWeek); sel.dataset.init='1'; }
+ if(!sel.dataset.init){ sel.innerHTML=(WR.weeks||[]).map((w,i)=>`<option value="${i}">${w.date}</option>`).join(''); sel.addEventListener('change',drawWeek); const cb=g('wk_copy'); if(cb) cb.addEventListener('click',copyWeekLark); sel.dataset.init='1'; }
  g('wk_src').textContent=WR.source||'';
  drawWeek();
 }
