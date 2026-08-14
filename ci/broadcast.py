@@ -10,11 +10,11 @@ comma=lambda v: format(int(round(v)), ",")
 arpu=lambda i: rev[i]/dau[i] if dau[i] else 0
 subarppu=lambda i: srev[i]/suv[i] if suv[i] else 0
 idx=range(max(0,n-7), n)
-cols=[{"name":"date","display_name":"日期","data_type":"text"},
-      {"name":"rev","display_name":"收入","data_type":"text","horizontal_align":"right"},
-      {"name":"pr","display_name":"付费率","data_type":"text","horizontal_align":"right"},
-      {"name":"arpu","display_name":"ARPU","data_type":"text","horizontal_align":"right"},
-      {"name":"sarppu","display_name":"订阅ARPPU","data_type":"text","horizontal_align":"right"}]
+cols=[{"name":"date","display_name":"日期","data_type":"text","width":"15%"},
+      {"name":"rev","display_name":"收入","data_type":"text","horizontal_align":"right","width":"22%"},
+      {"name":"pr","display_name":"付费率","data_type":"text","horizontal_align":"right","width":"20%"},
+      {"name":"arpu","display_name":"ARPU","data_type":"text","horizontal_align":"right","width":"20%"},
+      {"name":"sarppu","display_name":"订阅ARPPU","data_type":"text","horizontal_align":"right","width":"23%"}]
 rows=[{"date":dates[i][5:],"rev":"$"+comma(rev[i]),"pr":"%.3f%%"%(pr[i] or 0),
        "arpu":"$%.3f"%arpu(i),"sarppu":"$%.1f"%subarppu(i)} for i in idx]
 dm={m["key"]:m for m in P["dash_mom"]["metrics"]}
