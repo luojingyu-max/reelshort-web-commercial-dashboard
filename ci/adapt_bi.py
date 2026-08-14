@@ -24,7 +24,12 @@ def newmin(sheet, r0):
     return min(ds) if ds else "9999-99-99"
 
 # ---------- 1) 官网监控明细_recent.xlsx (2 行表头) ----------
-cut=newmin("官网监控明细数据",3)
+MON=os.environ.get("MON_FILE")   # 监控明细可单独一个文件(否则用主工作簿的同名表)
+mon_ws=(openpyxl.load_workbook(MON, read_only=True, data_only=True).worksheets[0]) if MON else nb["官网监控明细数据"]
+mrows=[r for r in mon_ws.iter_rows(min_row=3, values_only=True) if r and is2026(r[0])]
+cut=min((str(r[0])[:10] for r in mrows), default="9999-99-99")
+_PAID={"未付费用户","已付费用户"}
+paidfirst=any(str(r[1]) in _PAID for r in mrows[:30])   # True=付费在维度2(工作簿序);False=国家在维度2(单表序)
 sr=list(openpyxl.load_workbook(f"{D}/官网监控明细_recent.xlsx", read_only=True, data_only=True).worksheets[0].iter_rows(values_only=True))
 out=openpyxl.Workbook(); w=out.active; w.title="官网监控明细数据"
 for r in sr[:2]: w.append(list(r))
@@ -32,15 +37,17 @@ kept=0
 for r in sr[2:]:
     if r and is2026(r[0]) and str(r[0])[:10]<cut: w.append(list(r)); kept+=1
 add=0
-for r in nb["官网监控明细数据"].iter_rows(min_row=3, values_only=True):
-    if not r or not is2026(r[0]): continue
+for r in mrows:
     o=[0]*63
-    o[0]=str(r[0])[:10]; o[1]=r[2]; o[2]=r[1]; o[3]="ALL"
+    o[0]=str(r[0])[:10]
+    o[1]=r[2] if paidfirst else r[1]   # 国家
+    o[2]=r[1] if paidfirst else r[2]   # 付费
+    o[3]="ALL"
     o[4]=r[4]; o[5]=r[5]; o[7]=r[7]; o[9]=r[9]; o[11]=r[13]; o[12]=r[12]
     o[14]=r[15]; o[16]=r[17]; o[20]=r[21]; o[22]=r[23]; o[25]=r[26]; o[30]=r[31]   # +续订uv +订阅(续订)收入
     for k in range(31): o[32+k]=r[33+k]
     w.append(o); add+=1
-out.save(f"{D}/官网监控明细_recent.xlsx"); print("官网监控明细 (界<%s): 保留%d + 新增%d"%(cut,kept,add))
+out.save(f"{D}/官网监控明细_recent.xlsx"); print("官网监控明细 (来源%s 付费列序%s 界<%s): 保留%d + 新增%d"%("MON_FILE" if MON else "工作簿", paidfirst, cut, kept, add))
 
 # ---------- 2) 策略交叉表.xlsx (1 行表头) ----------
 cut=newmin("交叉表1",2)
