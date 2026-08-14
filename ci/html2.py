@@ -525,6 +525,7 @@ function drawWeek(){
  if(w.dapan) h+='<div class="card" style="margin-top:12px"><h3>大盘数据回收</h3>'+wtbl(w.dapan)+'</div>';
  if(w.phase2) h+='<div class="card" style="margin-top:12px"><h3>二期面板策略数据回收</h3><p class="cap">'+(w.phase2.note||'')+'</p>'+wtbl(w.phase2)+'</div>';
  if(w.ab) h+='<div class="card" style="margin-top:12px"><h3>AB 实验 · 美国 12.99 周卡(初步)</h3><p class="cap">'+(w.ab.note||'')+'</p>'+wtbl(w.ab)+'</div>';
+ if(w.diag) h+='<div class="card" style="margin-top:12px"><h3>'+(w.diag.title||'归因')+'</h3><p class="cap">'+(w.diag.note||'')+'</p>'+wtbl(w.diag)+((w.diag.concl&&w.diag.concl.length)?'<div class="concl" style="margin-top:8px">'+w.diag.concl.map(s=>'• '+s).join('<br>')+'</div>':'')+'</div>';
  if(w.concl&&w.concl.length) h+='<div class="card" style="margin-top:12px"><h3>结论与现状</h3><div class="concl">'+w.concl.map(s=>'• '+s).join('<br>')+'</div></div>';
  h+='<div class="card" style="margin-top:12px"><h3>社媒</h3><div class="concl">'+(w.social||'暂无数据')+'</div></div>';
  g('wk_body').innerHTML=h;
@@ -539,6 +540,7 @@ function copyWeekLark(){
  if(w.dapan){H+='<p><b>大盘数据回收</b></p>'+htbl(w.dapan); T+='【大盘数据回收】\n'+ttbl(w.dapan)+'\n';}
  if(w.phase2){H+=`<p><b>二期面板策略数据回收</b><br><i>${esc(w.phase2.note||'')}</i></p>`+htbl(w.phase2); T+='【二期面板策略数据回收】\n'+(w.phase2.note||'')+'\n'+ttbl(w.phase2)+'\n';}
  if(w.ab){H+=`<p><b>AB 实验 · 美国 12.99 周卡</b><br><i>${esc(w.ab.note||'')}</i></p>`+htbl(w.ab); T+='【AB 实验 · 美国 12.99 周卡】\n'+(w.ab.note||'')+'\n'+ttbl(w.ab)+'\n';}
+ if(w.diag){H+=`<p><b>${esc(w.diag.title||'归因')}</b><br><i>${esc(w.diag.note||'')}</i></p>`+htbl(w.diag)+((w.diag.concl&&w.diag.concl.length)?'<ul>'+w.diag.concl.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':''); T+='【'+(w.diag.title||'归因')+'】\n'+(w.diag.note||'')+'\n'+ttbl(w.diag)+(w.diag.concl?w.diag.concl.map(s=>'• '+s).join('\n')+'\n':'');}
  if(w.concl&&w.concl.length){H+='<p><b>结论与现状</b></p><ul>'+w.concl.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>'; T+='【结论与现状】\n'+w.concl.map(s=>'• '+s).join('\n')+'\n';}
  const btn=g('wk_copy'), ok=()=>{const o=btn.textContent; btn.textContent='✅ 已复制,去 Lark 粘贴'; setTimeout(()=>btn.textContent=o,2200);};
  if(navigator.clipboard&&window.ClipboardItem){
