@@ -14,14 +14,14 @@ idx=list(range(max(0,n-7), n))[::-1]   # 最新日期在最上
 SD={r[0]:r for r in P.get("site_detail",[])}
 vrate=lambda d: (SD[d][3] if d in SD else 0)
 okrate=lambda d: (SD[d][9] if d in SD else 0)
-cols=[{"name":"date","display_name":"日期","data_type":"text","width":"auto"},
-      {"name":"dau","display_name":"DAU","data_type":"text","horizontal_align":"right","width":"auto"},
-      {"name":"vr","display_name":"观看率","data_type":"text","horizontal_align":"right","width":"auto"},
-      {"name":"pr","display_name":"付费率","data_type":"text","horizontal_align":"right","width":"auto"},
-      {"name":"ok","display_name":"充值成功率","data_type":"text","horizontal_align":"right","width":"auto"},
-      {"name":"rev","display_name":"收入","data_type":"text","horizontal_align":"right","width":"auto"},
-      {"name":"arpu","display_name":"ARPU","data_type":"text","horizontal_align":"right","width":"auto"},
-      {"name":"sarppu","display_name":"订阅ARPPU","data_type":"text","horizontal_align":"right","width":"auto"}]
+cols=[{"name":"date","display_name":"日期","data_type":"text","width":"64px"},
+      {"name":"dau","display_name":"DAU","data_type":"text","horizontal_align":"right","width":"76px"},
+      {"name":"vr","display_name":"观看率","data_type":"text","horizontal_align":"right","width":"64px"},
+      {"name":"pr","display_name":"付费率","data_type":"text","horizontal_align":"right","width":"68px"},
+      {"name":"ok","display_name":"充值成功率","data_type":"text","horizontal_align":"right","width":"92px"},
+      {"name":"rev","display_name":"收入","data_type":"text","horizontal_align":"right","width":"76px"},
+      {"name":"arpu","display_name":"ARPU","data_type":"text","horizontal_align":"right","width":"66px"},
+      {"name":"sarppu","display_name":"订阅ARPPU","data_type":"text","horizontal_align":"right","width":"90px"}]
 rows=[{"date":dates[i][5:],"dau":comma(dau[i]),"vr":"%.1f%%"%vrate(dates[i]),"pr":"%.3f%%"%(pr[i] or 0),
        "ok":"%.1f%%"%okrate(dates[i]),"rev":"$"+comma(rev[i]),"arpu":"$%.3f"%arpu(i),"sarppu":"$%.1f"%subarppu(i)} for i in idx]
 dm={m["key"]:m for m in P["dash_mom"]["metrics"]}
