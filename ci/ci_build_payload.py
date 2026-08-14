@@ -46,23 +46,24 @@ for r in ws(f"{D}/官网大盘.xlsx").iter_rows(min_row=3, values_only=True):
     if not d or d>="2026-07-30": continue
     ltv=[num(r[32+k]) if len(r)>32+k else 0 for k in range(31)]
     site[d]={"dau":num(r[4]),"view":num(r[5]),"reach":num(r[7]),"order":num(r[9]),"uv":num(r[11]),"payok":num(r[12]),
-             "coin":num(r[14]),"sub":num(r[16]),"rev":num(r[22]),"arppu":num(r[30]),"ltv":ltv}
-agg=defaultdict(lambda:{"dau":0.0,"view":0.0,"reach":0.0,"order":0.0,"uv":0.0,"coin":0.0,"sub":0.0,"rev":0.0,"pw":0.0,"lw":[0.0]*31})
+             "coin":num(r[14]),"sub":num(r[16]),"subrev":num(r[25]),"rev":num(r[22]),"arppu":num(r[30]),"ltv":ltv}
+agg=defaultdict(lambda:{"dau":0.0,"view":0.0,"reach":0.0,"order":0.0,"uv":0.0,"coin":0.0,"sub":0.0,"subrev":0.0,"rev":0.0,"pw":0.0,"lw":[0.0]*31})
 for x in rec_cp:
     if x["d"]<"2026-07-30": continue
     a=agg[x["d"]]
-    for k2 in ("dau","view","reach","order","uv","coin","sub","rev"): a[k2]+=x[k2]
+    for k2 in ("dau","view","reach","order","uv","coin","sub","subrev","rev"): a[k2]+=x[k2]
     a["pw"]+=x["payok"]*x["order"]
     for k in range(31): a["lw"][k]+=x["ltv"][k]*x["dau"]
 for d,a in agg.items():
     w=a["dau"] or 1
-    site[d]={"dau":a["dau"],"view":a["view"],"reach":a["reach"],"order":a["order"],"uv":a["uv"],"coin":a["coin"],"sub":a["sub"],"rev":a["rev"],
+    site[d]={"dau":a["dau"],"view":a["view"],"reach":a["reach"],"order":a["order"],"uv":a["uv"],"coin":a["coin"],"sub":a["sub"],"subrev":a["subrev"],"rev":a["rev"],
              "payok":a["pw"]/a["order"] if a["order"] else 0,"arppu":a["rev"]/a["uv"] if a["uv"] else 0,"ltv":[a["lw"][k]/w for k in range(31)]}
 dates=sorted(site)
 dau=[round(site[d]["dau"]) for d in dates]
 rev=[round(site[d]["rev"],2) for d in dates]
 chargeuv=[round(site[d]["uv"]) for d in dates]
 subuv=[round(site[d]["sub"]) for d in dates]
+subrev_d=[round(site[d].get("subrev",0),2) for d in dates]
 payrate=[round(site[d]["uv"]/site[d]["dau"]*100,4) if site[d]["dau"] else None for d in dates]
 subrate=[round(site[d]["sub"]/site[d]["dau"]*100,4) if site[d]["dau"] else None for d in dates]
 arppu=[round(site[d]["arppu"],4) for d in dates]
@@ -300,7 +301,7 @@ ranges={"dash":_rg(dates[0],dates[-1]),
         "phase2_pre":_rg(*PRE),"phase2_post":_rg(*POST),"maxd":maxd}
 
 P={"gen":dates[-1],"dates":dates,"dau":dau,"rev":rev,"payrate":payrate,"subrate":subrate,"arppu":arppu,
-   "chargeuv":chargeuv,"subuv":subuv,"ltv":ltv,"ltv_date":ltv_date,
+   "chargeuv":chargeuv,"subuv":subuv,"subrev_d":subrev_d,"ltv":ltv,"ltv_date":ltv_date,
    "kpi":{"dau":kpi(dau),"payrate":kpi(payrate),"arppu":kpi(arppu),"rev":kpi(rev),"ltv30":ltv[30],"rev30":rev30},
    "app":app,"ov_dates":ov_dates,"ov_site":ov_site,"ov_app":ov_app,
    "targets":targets,"cur_month":cur_month,"mtd":round(mtd),"target_cur":target_cur,"dash_mom":dash_mom,
