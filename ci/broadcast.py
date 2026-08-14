@@ -14,14 +14,14 @@ idx=range(max(0,n-7), n)
 SD={r[0]:r for r in P.get("site_detail",[])}
 vrate=lambda d: (SD[d][3] if d in SD else 0)
 okrate=lambda d: (SD[d][9] if d in SD else 0)
-cols=[{"name":"date","display_name":"日期","data_type":"text","width":"11%"},
-      {"name":"dau","display_name":"DAU","data_type":"text","horizontal_align":"right","width":"13%"},
-      {"name":"vr","display_name":"观看率","data_type":"text","horizontal_align":"right","width":"12%"},
-      {"name":"pr","display_name":"付费率","data_type":"text","horizontal_align":"right","width":"12%"},
-      {"name":"ok","display_name":"充值成功率","data_type":"text","horizontal_align":"right","width":"14%"},
-      {"name":"rev","display_name":"收入","data_type":"text","horizontal_align":"right","width":"15%"},
-      {"name":"arpu","display_name":"ARPU","data_type":"text","horizontal_align":"right","width":"11%"},
-      {"name":"sarppu","display_name":"订阅ARPPU","data_type":"text","horizontal_align":"right","width":"12%"}]
+cols=[{"name":"date","display_name":"日期","data_type":"text","width":"9%"},
+      {"name":"dau","display_name":"DAU","data_type":"text","horizontal_align":"right","width":"11%"},
+      {"name":"vr","display_name":"观看率","data_type":"text","horizontal_align":"right","width":"11%"},
+      {"name":"pr","display_name":"付费率","data_type":"text","horizontal_align":"right","width":"11%"},
+      {"name":"ok","display_name":"充值成功率","data_type":"text","horizontal_align":"right","width":"16%"},
+      {"name":"rev","display_name":"收入","data_type":"text","horizontal_align":"right","width":"13%"},
+      {"name":"arpu","display_name":"ARPU","data_type":"text","horizontal_align":"right","width":"12%"},
+      {"name":"sarppu","display_name":"订阅ARPPU","data_type":"text","horizontal_align":"right","width":"17%"}]
 rows=[{"date":dates[i][5:],"dau":comma(dau[i]),"vr":"%.1f%%"%vrate(dates[i]),"pr":"%.3f%%"%(pr[i] or 0),
        "ok":"%.1f%%"%okrate(dates[i]),"rev":"$"+comma(rev[i]),"arpu":"$%.3f"%arpu(i),"sarppu":"$%.1f"%subarppu(i)} for i in idx]
 dm={m["key"]:m for m in P["dash_mom"]["metrics"]}
