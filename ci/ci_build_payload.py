@@ -131,13 +131,18 @@ def cagg(rows,c,paid=None):
 tm=(iso(md.replace(day=1)),maxd); lm=(iso(lme.replace(day=1)),iso(lme.replace(day=min(md.day,lme.day))))
 wk=(iso(md-datetime.timedelta(days=6)),maxd); pw=(iso(md-datetime.timedelta(days=13)),iso(md-datetime.timedelta(days=7)))
 TMc,LMc,Wc,PWc=win(*tm),win(*lm),win(*wk),win(*pw)
+# 日环比: 最新日 vs 其前一个有数据日(数据可能跳天,故取实际存在的前一日)
+_cds=sorted({x["d"] for x in recs}); dcur=_cds[-1]; dprev=_cds[-2] if len(_cds)>1 else None
+Dc=win(dcur,dcur); DPc=win(dprev,dprev) if dprev else []
 countries=sorted({x["c"] for x in recs}, key=lambda c:-arev(recs,c))
 ctab=[]
 for c in countries:
     cur=cagg(TMc,c); paid=cagg(TMc,c,True); unpaid=cagg(TMc,c,False)
     ctab.append({"c":c,**cur,"rev_paid":paid["rev"],"rev_unpaid":unpaid["rev"],
-                 "rev_mom":pct(arev(TMc,c),arev(LMc,c)),"rev_wow":pct(arev(Wc,c),arev(PWc,c))})
-cwindows={"month":list(tm),"lastmonth":list(lm),"week":list(wk),"pastweek":list(pw)}
+                 "rev_mom":pct(arev(TMc,c),arev(LMc,c)),"rev_wow":pct(arev(Wc,c),arev(PWc,c)),
+                 "rev_dod":pct(arev(Dc,c),arev(DPc,c)) if dprev else None})
+cwindows={"month":list(tm),"lastmonth":list(lm),"week":list(wk),"pastweek":list(pw),
+          "day":[dcur,dcur],"prevday":([dprev,dprev] if dprev else None)}
 mcut=(md-datetime.timedelta(days=30)).isoformat()
 def cltv(c):
     rs=[x for x in recs if x["c"]==c and x["d"]<=mcut]; w=sum(x["dau"] for x in rs)

@@ -131,7 +131,7 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
   <div class="card"><h3>盘口覆盖国家 vs 其余国家 · 收入占比</h3><p class="cap" id="cap_covpie"></p><div class="cwrap" style="height:300px"><canvas id="c_covpie"></canvas></div></div>
   <div class="card"><h3>各国收入占比(全部国家)</h3><p class="cap" id="cap_allpie"></p><div class="cwrap" style="height:300px"><canvas id="c_allpie"></canvas></div></div>
  </div>
- <h2>盘口覆盖国家 KPI 明细(带月/周环比 · 含漏斗)</h2>
+ <h2>盘口覆盖国家 KPI 明细(带月/周/日环比 · 含漏斗)</h2>
  <p class="sub" id="cap_ctab" style="margin:-6px 0 10px"></p>
  <div class="card"><div style="overflow-x:auto"><table id="t_ctab"></table></div></div>
  <h2>各国 LTV 曲线(成熟批次 · DAU加权)</h2>
@@ -365,7 +365,7 @@ function renderCountry(){
  mk('c_mom',{type:'bar',data:{labels:top.map(c=>c.c),datasets:[{data:top.map(c=>c.rev_mom),
    backgroundColor:top.map(c=>c.rev_mom>=0?css('--s3'):css('--s2')),borderRadius:3}]},options:om});
  const w=D.cwindows;
- document.getElementById('cwin-note').innerHTML=`月环比 = 本月至今 <b>${w.month[0]}~${w.month[1]}</b> vs 上月同期 <b>${w.lastmonth[0]}~${w.lastmonth[1]}</b> · 周环比 = <b>${w.week[0]}~${w.week[1]}</b> vs <b>${w.pastweek[0]}~${w.pastweek[1]}</b>。收入区分已付费/未付费。`;
+ document.getElementById('cwin-note').innerHTML=`月环比 = 本月至今 <b>${w.month[0]}~${w.month[1]}</b> vs 上月同期 <b>${w.lastmonth[0]}~${w.lastmonth[1]}</b> · 周环比 = <b>${w.week[0]}~${w.week[1]}</b> vs <b>${w.pastweek[0]}~${w.pastweek[1]}</b>`+(w.prevday?` · 日环比 = <b>${w.day[0]}</b> vs <b>${w.prevday[0]}</b>`:'')+`。收入区分已付费/未付费。`;
  const R=D.ranges||{};
  // 盘口覆盖 vs 其余 收入占比(本月至今)
  const covSet={}; Object.keys(D.strat_by_country||{}).forEach(x=>covSet[x]=1);
@@ -387,8 +387,8 @@ function renderCountry(){
  const gmap={},gord=[]; ((D.funnel||{}).groups||[]).forEach(gr=>gr.countries.forEach(c=>{gmap[c]=gr.name;gord.push(c);}));
  const ctf=gord.map(cn=>ct.find(x=>x.c===cn)).filter(Boolean);
  document.getElementById('t_ctab').innerHTML=
-  '<thead><tr><th>盘口</th><th>国家</th><th>本月收入</th><th>已付费</th><th>未付费</th><th>MoM</th><th>WoW</th><th>观看率</th><th>触达付费集率</th><th>创建订单率</th><th>付费率</th><th>ARPU</th><th>ARPPU</th><th>日均DAU</th></tr></thead><tbody>'+
-  ctf.map(c=>`<tr><td>${gmap[c.c]||''}</td><td>${c.c}</td><td>${usd(c.rev)}</td><td>${usd(c.rev_paid)}</td><td>${usd(c.rev_unpaid)}</td><td>${chg(c.rev_mom)}</td><td>${chg(c.rev_wow)}</td><td>${pc(c.viewrate,2)}</td><td>${pc(c.reachrate,2)}</td><td>${pc(c.orderrate,3)}</td><td>${pc(c.payrate,3)}</td><td>$${Number(c.arpu).toFixed(4)}</td><td>${usd1(c.arppu)}</td><td>${int(c.dau)}</td></tr>`).join('')+'</tbody>';
+  '<thead><tr><th>盘口</th><th>国家</th><th>本月收入</th><th>已付费</th><th>未付费</th><th>MoM</th><th>WoW</th><th>DoD</th><th>观看率</th><th>触达付费集率</th><th>创建订单率</th><th>付费率</th><th>ARPU</th><th>ARPPU</th><th>日均DAU</th></tr></thead><tbody>'+
+  ctf.map(c=>`<tr><td>${gmap[c.c]||''}</td><td>${c.c}</td><td>${usd(c.rev)}</td><td>${usd(c.rev_paid)}</td><td>${usd(c.rev_unpaid)}</td><td>${chg(c.rev_mom)}</td><td>${chg(c.rev_wow)}</td><td>${chg(c.rev_dod)}</td><td>${pc(c.viewrate,2)}</td><td>${pc(c.reachrate,2)}</td><td>${pc(c.orderrate,3)}</td><td>${pc(c.payrate,3)}</td><td>$${Number(c.arpu).toFixed(4)}</td><td>${usd1(c.arppu)}</td><td>${int(c.dau)}</td></tr>`).join('')+'</tbody>';
  // 各国 LTV 曲线(Top6)+ 全量表
  const cl=D.country_ltv, top6=ct.slice(0,6).map(c=>c.c);
  let ol=base(); ol.scales.x.ticks.maxTicksLimit=8;
