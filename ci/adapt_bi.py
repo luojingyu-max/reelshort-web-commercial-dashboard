@@ -20,8 +20,23 @@ print("适配输入:", NEW)
 nb=openpyxl.load_workbook(NEW, read_only=True, data_only=True)
 def is2026(v): return bool(re.match(r'2026-\d\d-\d\d', str(v)[:10]))
 def newmin(sheet, r0):
-    ds=[str(r[0])[:10] for r in nb[sheet].iter_rows(min_row=r0, values_only=True) if r and is2026(r[0])]
+    ds=[str(r[0])[:10] for r in sh(sheet).iter_rows(min_row=r0, values_only=True) if r and is2026(r[0])]
     return min(ds) if ds else "9999-99-99"
+
+# BI 有时会改 sheet 名(交叉表1→官网商业化监控明细、交叉表3→档位支付明细),按别名+位置兜底
+_ALIAS={"官网监控明细数据":["官网监控明细数据","官网监控明细"],
+        "交叉表1":["交叉表1","官网商业化监控明细","策略交叉表"],
+        "SEO监控明细数据":["SEO监控明细数据","SEO监控明细"],
+        "交叉表3":["交叉表3","档位支付明细","SKU交叉表"]}
+_POS={"官网监控明细数据":0,"交叉表1":1,"SEO监控明细数据":2,"交叉表3":3}
+def sh(name):
+    for a in _ALIAS.get(name,[name]):
+        if a in nb.sheetnames: return nb[a]
+    i=_POS.get(name)
+    if i is not None and i < len(nb.sheetnames):
+        print("  [warn] 未找到表名 %s,按位置取第%d个: %s"%(name,i+1,nb.sheetnames[i]))
+        return nb.worksheets[i]
+    raise KeyError(name)
 
 # ---------- 1) 官网监控明细_recent.xlsx (2 行表头) ----------
 # SKIP_MON=1 跳过监控明细(导出格式异常时,只更新其余3表,不污染大盘/国家)
@@ -29,7 +44,7 @@ if os.environ.get("SKIP_MON"):
     print("官网监控明细: 已跳过(SKIP_MON=1),大盘/国家保持原样")
 else:
   MON=os.environ.get("MON_FILE")   # 监控明细可单独一个文件(否则用主工作簿的同名表)
-  mon_ws=(openpyxl.load_workbook(MON, read_only=True, data_only=True).worksheets[0]) if MON else nb["官网监控明细数据"]
+  mon_ws=(openpyxl.load_workbook(MON, read_only=True, data_only=True).worksheets[0]) if MON else sh("官网监控明细数据")
   mall=list(mon_ws.iter_rows(min_row=1, values_only=True))
   mhdr=mall[1]                                     # 第2行=字段名
   mrows=[r for r in mall[2:] if r and is2026(r[0])]
@@ -81,7 +96,7 @@ out=openpyxl.Workbook(); w=out.active; w.title="策略交叉表"; w.append(list(
 for r in sr[1:]:
     if r and is2026(r[0]) and str(r[0])[:10]<cut: w.append(list(r)); kept+=1
 add=0
-for r in nb["交叉表1"].iter_rows(min_row=2, values_only=True):
+for r in sh("交叉表1").iter_rows(min_row=2, values_only=True):
     if not r or not is2026(r[0]): continue
     o=[0]*16
     o[0]=str(r[0])[:10]; o[1]=r[1]; o[2]=r[3]; o[3]=r[2]
@@ -104,7 +119,7 @@ for r in sr[1:]:
         w.append(rr); kept+=1
 _SKC={"美国","加拿大","澳大利亚","英国","法国","日本","意大利","巴西","墨西哥","智利","阿根廷","韩国","泰国"}  # SKU只看13策略国
 add=0
-for r in nb["交叉表3"].iter_rows(min_row=2, values_only=True):
+for r in sh("交叉表3").iter_rows(min_row=2, values_only=True):
     if not r or not is2026(r[0]) or str(r[4]) not in _SKC: continue
     w.append([str(r[0])[:10],r[1],r[2],r[3],r[4]]+[round(num(r[5+k]),2) for k in range(11)]); add+=1
 out.save(f"{D}/SKU交叉表.xlsx"); print("SKU交叉表 (界<%s): 保留%d + 新增%d(仅13策略国)"%(cut,kept,add))
@@ -117,7 +132,7 @@ if os.path.exists(f"{D}/收入明细.xlsx"):
     for r in list(openpyxl.load_workbook(f"{D}/收入明细.xlsx", read_only=True, data_only=True).worksheets[0].iter_rows(values_only=True))[1:]:
         if r and is2026(r[0]) and str(r[0])[:10]<cut: w.append(list(r)); kept+=1
 add=0
-for r in nb["SEO监控明细数据"].iter_rows(min_row=3, values_only=True):
+for r in sh("SEO监控明细数据").iter_rows(min_row=3, values_only=True):
     if not r or not is2026(r[0]): continue
     row=[0]*14
     row[0]=str(r[0])[:10]; row[1]="官网引流APP"; row[2]=r[2]
