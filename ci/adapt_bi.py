@@ -30,10 +30,28 @@ if os.environ.get("SKIP_MON"):
 else:
   MON=os.environ.get("MON_FILE")   # 监控明细可单独一个文件(否则用主工作簿的同名表)
   mon_ws=(openpyxl.load_workbook(MON, read_only=True, data_only=True).worksheets[0]) if MON else nb["官网监控明细数据"]
-  mrows=[r for r in mon_ws.iter_rows(min_row=3, values_only=True) if r and is2026(r[0])]
+  mall=list(mon_ws.iter_rows(min_row=1, values_only=True))
+  mhdr=mall[1]                                     # 第2行=字段名
+  mrows=[r for r in mall[2:] if r and is2026(r[0])]
   cut=min((str(r[0])[:10] for r in mrows), default="9999-99-99")
-  _PAID={"未付费用户","已付费用户"}
-  paidfirst=any(str(r[1]) in _PAID for r in mrows[:30])   # True=付费在维度2(工作簿序);False=国家在维度2(单表序)
+  # 列偏移: 4维 DAU=4 / 5维(多D0或渠道) DAU=5 -> 指标整体右移
+  off=next((i for i,v in enumerate(mhdr) if str(v).strip()=="DAU"), 4)-4
+  _PAID={"未付费用户","已付费用户"}; _D0={"D0","非D0"}
+  # 维度列在 0..off+3;自动识别 付费/国家 所在列(D0 与 ALL 忽略,按 日期+付费+国家 聚合)
+  dimc=list(range(1,off+4))
+  pcol=next((c for c in dimc if any(str(r[c]) in _PAID for r in mrows[:50])), 2)
+  ccol=next((c for c in dimc if c!=pcol and not any(str(r[c]) in _D0 for r in mrows[:50])
+             and len({str(r[c]) for r in mrows[:200]})>3), 1)
+  # 列号按 4维基准(DAU=4);5维时统一 +off。ltv0 在 4维=33
+  SUM={"dau":4,"view":5,"reach":7,"order":9,"payok_uv":11,"payuv":13,"coin":15,"sub":17,"renew":21,"rev":23,"subrev":26}
+  agg={}
+  for r in mrows:
+      k=(str(r[0])[:10], str(r[ccol]), str(r[pcol]))
+      a=agg.get(k)
+      if a is None: a=agg[k]={n:0.0 for n in SUM}; a["_ltv"]=[0.0]*31
+      for n,ci in SUM.items(): a[n]+=num(r[ci+off])
+      dau_r=num(r[4+off])
+      for j in range(31): a["_ltv"][j]+=num(r[33+off+j])*dau_r
   sr=list(openpyxl.load_workbook(f"{D}/官网监控明细_recent.xlsx", read_only=True, data_only=True).worksheets[0].iter_rows(values_only=True))
   out=openpyxl.Workbook(); w=out.active; w.title="官网监控明细数据"
   for r in sr[:2]: w.append(list(r))
@@ -41,17 +59,20 @@ else:
   for r in sr[2:]:
       if r and is2026(r[0]) and str(r[0])[:10]<cut: w.append(list(r)); kept+=1
   add=0
-  for r in mrows:
+  for (d,c,p),a in sorted(agg.items()):
       o=[0]*63
-      o[0]=str(r[0])[:10]
-      o[1]=r[2] if paidfirst else r[1]   # 国家
-      o[2]=r[1] if paidfirst else r[2]   # 付费
-      o[3]="ALL"
-      o[4]=r[4]; o[5]=r[5]; o[7]=r[7]; o[9]=r[9]; o[11]=r[13]; o[12]=r[12]
-      o[14]=r[15]; o[16]=r[17]; o[20]=r[21]; o[22]=r[23]; o[25]=r[26]; o[30]=r[31]   # +续订uv +订阅(续订)收入
-      for k in range(31): o[32+k]=r[33+k]
+      o[0]=d; o[1]=c; o[2]=p; o[3]="ALL"
+      o[4]=a["dau"]; o[5]=a["view"]; o[7]=a["reach"]; o[9]=a["order"]
+      o[11]=a["payuv"]                                          # 老充值uv=总付费uv
+      o[12]=(a["payok_uv"]/a["order"]) if a["order"] else 0      # 支付成功率(重算)
+      o[14]=a["coin"]; o[16]=a["sub"]; o[20]=a["renew"]
+      o[22]=a["rev"]; o[25]=a["subrev"]
+      o[30]=(a["rev"]/a["payuv"]) if a["payuv"] else 0           # ARPPU(重算)
+      for j in range(31): o[32+j]=(a["_ltv"][j]/a["dau"]) if a["dau"] else 0   # LTV: DAU加权
       w.append(o); add+=1
-  out.save(f"{D}/官网监控明细_recent.xlsx"); print("官网监控明细 (来源%s 付费列序%s 界<%s): 保留%d + 新增%d"%("MON_FILE" if MON else "工作簿", paidfirst, cut, kept, add))
+  out.save(f"{D}/官网监控明细_recent.xlsx")
+  print("官网监控明细 (来源%s 维度%d 付费列%d 国家列%d 界<%s): 保留%d + 聚合后新增%d(原始%d行)"%(
+      "MON_FILE" if MON else "工作簿", off+4, pcol, ccol, cut, kept, add, len(mrows)))
 
 # ---------- 2) 策略交叉表.xlsx (1 行表头) ----------
 cut=newmin("交叉表1",2)
