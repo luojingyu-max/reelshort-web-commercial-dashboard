@@ -49,24 +49,34 @@ else:
   mhdr=mall[1]                                     # 第2行=字段名
   mrows=[r for r in mall[2:] if r and is2026(r[0])]
   cut=min((str(r[0])[:10] for r in mrows), default="9999-99-99")
-  # 列偏移: 4维 DAU=4 / 5维(多D0或渠道) DAU=5 -> 指标整体右移
-  off=next((i for i,v in enumerate(mhdr) if str(v).strip()=="DAU"), 4)-4
+  # 按表头名定位列(BI 常在中间插列,如"支付失败uv/率",按固定列号会全错)
+  hidx={}
+  for i,v in enumerate(mhdr):
+      n=str(v).strip()
+      if n and n not in hidx: hidx[n]=i
+  def col(*names):
+      for n in names:
+          if n in hidx: return hidx[n]
+      raise KeyError("监控明细缺列: "+"/".join(names))
+  dau_i=col("DAU")
   _PAID={"未付费用户","已付费用户"}; _D0={"D0","非D0"}
-  # 维度列在 0..off+3;自动识别 付费/国家 所在列(D0 与 ALL 忽略,按 日期+付费+国家 聚合)
-  dimc=list(range(1,off+4))
+  # 维度列 = DAU 之前的列;自动识别 付费/国家(D0 与 ALL 忽略,按 日期+付费+国家 聚合)
+  dimc=list(range(1,dau_i))
   pcol=next((c for c in dimc if any(str(r[c]) in _PAID for r in mrows[:50])), 2)
   ccol=next((c for c in dimc if c!=pcol and not any(str(r[c]) in _D0 for r in mrows[:50])
              and len({str(r[c]) for r in mrows[:200]})>3), 1)
-  # 列号按 4维基准(DAU=4);5维时统一 +off。ltv0 在 4维=33
-  SUM={"dau":4,"view":5,"reach":7,"order":9,"payok_uv":11,"payuv":13,"coin":15,"sub":17,"renew":21,"rev":23,"subrev":26}
+  SUM={"dau":col("DAU"),"view":col("观看uv"),"reach":col("触达付费集uv"),"order":col("创建订单uv"),
+       "payok_uv":col("支付成功uv"),"payuv":col("总付费uv"),"coin":col("金币充值uv"),"sub":col("订阅uv"),
+       "renew":col("续订uv"),"rev":col("总收入"),"subrev":col("订阅(续订)收入")}
+  ltv0_i=col("ltv0")
   agg={}
   for r in mrows:
       k=(str(r[0])[:10], str(r[ccol]), str(r[pcol]))
       a=agg.get(k)
       if a is None: a=agg[k]={n:0.0 for n in SUM}; a["_ltv"]=[0.0]*31
-      for n,ci in SUM.items(): a[n]+=num(r[ci+off])
-      dau_r=num(r[4+off])
-      for j in range(31): a["_ltv"][j]+=num(r[33+off+j])*dau_r
+      for n,ci in SUM.items(): a[n]+=num(r[ci])
+      dau_r=num(r[dau_i])
+      for j in range(31): a["_ltv"][j]+=num(r[ltv0_i+j])*dau_r
   sr=list(openpyxl.load_workbook(f"{D}/官网监控明细_recent.xlsx", read_only=True, data_only=True).worksheets[0].iter_rows(values_only=True))
   out=openpyxl.Workbook(); w=out.active; w.title="官网监控明细数据"
   for r in sr[:2]: w.append(list(r))
@@ -86,8 +96,8 @@ else:
       for j in range(31): o[32+j]=(a["_ltv"][j]/a["dau"]) if a["dau"] else 0   # LTV: DAU加权
       w.append(o); add+=1
   out.save(f"{D}/官网监控明细_recent.xlsx")
-  print("官网监控明细 (来源%s 维度%d 付费列%d 国家列%d 界<%s): 保留%d + 聚合后新增%d(原始%d行)"%(
-      "MON_FILE" if MON else "工作簿", off+4, pcol, ccol, cut, kept, add, len(mrows)))
+  print("官网监控明细 (来源%s DAU列%d 付费列%d 国家列%d 界<%s): 保留%d + 聚合后新增%d(原始%d行)"%(
+      "MON_FILE" if MON else "工作簿", dau_i, pcol, ccol, cut, kept, add, len(mrows)))
 
 # ---------- 2) 策略交叉表.xlsx (1 行表头) ----------
 cut=newmin("交叉表1",2)
