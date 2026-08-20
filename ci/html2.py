@@ -523,6 +523,7 @@ function drawWeek(){
  let h='';
  if(w.summary&&w.summary.length) h+='<div class="card"><h3>本周摘要</h3><div class="concl">'+w.summary.map(s=>'• '+s).join('<br>')+'</div></div>';
  if(w.dapan) h+='<div class="card" style="margin-top:12px"><h3>大盘数据回收</h3>'+wtbl(w.dapan)+'</div>';
+ if(w.pay) h+='<div class="card" style="margin-top:12px"><h3>'+(w.pay.title||'支付成功率')+'</h3><p class="cap">'+(w.pay.note||'')+'</p>'+wtbl(w.pay)+((w.pay.concl&&w.pay.concl.length)?'<div class="concl" style="margin-top:8px">'+w.pay.concl.map(s=>'• '+s).join('<br>')+'</div>':'')+'</div>';
  if(w.phase2) h+='<div class="card" style="margin-top:12px"><h3>二期面板策略数据回收</h3><p class="cap">'+(w.phase2.note||'')+'</p>'+wtbl(w.phase2)+'</div>';
  if(w.ab) h+='<div class="card" style="margin-top:12px"><h3>AB 实验 · 美国 12.99 周卡(初步)</h3><p class="cap">'+(w.ab.note||'')+'</p>'+wtbl(w.ab)+'</div>';
  if(w.diag) h+='<div class="card" style="margin-top:12px"><h3>'+(w.diag.title||'归因')+'</h3><p class="cap">'+(w.diag.note||'')+'</p>'+wtbl(w.diag)+((w.diag.concl&&w.diag.concl.length)?'<div class="concl" style="margin-top:8px">'+w.diag.concl.map(s=>'• '+s).join('<br>')+'</div>':'')+'</div>';
@@ -538,6 +539,7 @@ function copyWeekLark(){
  let H=`<h3>产运周报 · ${esc(w.date)}</h3>`, T=`产运周报 · ${w.date}\n\n`;
  if(w.summary&&w.summary.length){H+='<p><b>本周摘要</b></p><ul>'+w.summary.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>'; T+='【本周摘要】\n'+w.summary.map(s=>'• '+s).join('\n')+'\n\n';}
  if(w.dapan){H+='<p><b>大盘数据回收</b></p>'+htbl(w.dapan); T+='【大盘数据回收】\n'+ttbl(w.dapan)+'\n';}
+ if(w.pay){H+=`<p><b>${esc(w.pay.title||'支付成功率')}</b><br><i>${esc(w.pay.note||'')}</i></p>`+htbl(w.pay)+((w.pay.concl&&w.pay.concl.length)?'<ul>'+w.pay.concl.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':''); T+='【'+(w.pay.title||'支付成功率')+'】\n'+(w.pay.note||'')+'\n'+ttbl(w.pay)+(w.pay.concl?w.pay.concl.map(s=>'• '+s).join('\n')+'\n':'')+'\n';}
  if(w.phase2){H+=`<p><b>二期面板策略数据回收</b><br><i>${esc(w.phase2.note||'')}</i></p>`+htbl(w.phase2); T+='【二期面板策略数据回收】\n'+(w.phase2.note||'')+'\n'+ttbl(w.phase2)+'\n';}
  if(w.ab){H+=`<p><b>AB 实验 · 美国 12.99 周卡</b><br><i>${esc(w.ab.note||'')}</i></p>`+htbl(w.ab); T+='【AB 实验 · 美国 12.99 周卡】\n'+(w.ab.note||'')+'\n'+ttbl(w.ab)+'\n';}
  if(w.diag){H+=`<p><b>${esc(w.diag.title||'归因')}</b><br><i>${esc(w.diag.note||'')}</i></p>`+htbl(w.diag)+((w.diag.concl&&w.diag.concl.length)?'<ul>'+w.diag.concl.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':''); T+='【'+(w.diag.title||'归因')+'】\n'+(w.diag.note||'')+'\n'+ttbl(w.diag)+(w.diag.concl?w.diag.concl.map(s=>'• '+s).join('\n')+'\n':'');}
