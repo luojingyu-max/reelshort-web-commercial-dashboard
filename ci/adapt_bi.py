@@ -106,10 +106,15 @@ out=openpyxl.Workbook(); w=out.active; w.title="策略交叉表"; w.append(list(
 for r in sr[1:]:
     if r and is2026(r[0]) and str(r[0])[:10]<cut: w.append(list(r)); kept+=1
 add=0
-for r in sh("交叉表1").iter_rows(min_row=2, values_only=True):
-    if not r or not is2026(r[0]): continue
+_x1=[r for r in sh("交叉表1").iter_rows(min_row=2, values_only=True) if r and is2026(r[0])]
+# 自动识别 付费状态 在维度2还是维度3(BI 两种导出顺序都出现过)
+_PAID2={"未付费用户","已付费用户"}
+_pc=1 if any(str(r[1]) in _PAID2 for r in _x1[:50]) else 2
+_cc=2 if _pc==1 else 1          # 国家列
+print("  [交叉表1] 付费列=维度%d 国家列=维度%d 策略列=维度4"%(_pc+1,_cc+1))
+for r in _x1:
     o=[0]*16
-    o[0]=str(r[0])[:10]; o[1]=r[1]; o[2]=r[3]; o[3]=r[2]
+    o[0]=str(r[0])[:10]; o[1]=r[_pc]; o[2]=r[3]; o[3]=r[_cc]
     o[4]=r[4]; o[5]=r[5]; o[6]=r[6]; o[7]=r[7]; o[8]=r[9]; o[9]=r[10]
     o[10]=r[11]; o[11]=r[12]; o[12]=r[13]; o[13]=r[14]; o[14]=r[15]; o[15]=r[16]
     w.append(o); add+=1
