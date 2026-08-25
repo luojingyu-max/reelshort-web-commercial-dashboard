@@ -134,9 +134,16 @@ for r in sr[1:]:
         w.append(rr); kept+=1
 _SKC={"美国","加拿大","澳大利亚","英国","法国","日本","意大利","巴西","墨西哥","智利","阿根廷","韩国","泰国"}  # SKU只看13策略国
 add=0
-for r in sh("交叉表3").iter_rows(min_row=2, values_only=True):
+# 按表头名取指标列(BI 曾在指标前插入"充值pv",固定列号会整体错位)
+_x3=list(sh("交叉表3").iter_rows(min_row=1, values_only=True))
+_h3={str(v).strip():i for i,v in enumerate(_x3[0]) if v}
+_M3=["充值uv","金币充值uv","订阅uv","首订uv","续订uv","充值收入","金币充值收入","订阅(续订)收入","首订收入","续订收入","总收入"]
+_idx3=[_h3[n] for n in _M3 if n in _h3]
+if len(_idx3)!=11: raise SystemExit("交叉表3 缺列,仅匹配到%d/11: %s"%(len(_idx3),[n for n in _M3 if n not in _h3]))
+print("  [交叉表3] 指标列位:",_idx3)
+for r in _x3[1:]:
     if not r or not is2026(r[0]) or str(r[4]) not in _SKC: continue
-    w.append([str(r[0])[:10],r[1],r[2],r[3],r[4]]+[round(num(r[5+k]),2) for k in range(11)]); add+=1
+    w.append([str(r[0])[:10],r[1],r[2],r[3],r[4]]+[round(num(r[i]),2) for i in _idx3]); add+=1
 out.save(f"{D}/SKU交叉表.xlsx"); print("SKU交叉表 (界<%s): 保留%d + 新增%d(仅13策略国)"%(cut,kept,add))
 
 # ---------- 4) 收入明细.xlsx (引流App=SEO监控明细口径; 合并历史) ----------
