@@ -48,6 +48,14 @@ else:
   mall=list(mon_ws.iter_rows(min_row=1, values_only=True))
   mhdr=mall[1]                                     # 第2行=字段名
   mrows=[r for r in mall[2:] if r and is2026(r[0])]
+  # 剔除残缺日:BI 当日数据未跑完时 DAU 会全为 0(有收入但无DAU),并入会污染大盘
+  _dcol=next((i for i,v in enumerate(mhdr) if str(v).strip()=="DAU"), 4)
+  _dau_by_day={}
+  for _r in mrows: _dau_by_day[str(_r[0])[:10]]=_dau_by_day.get(str(_r[0])[:10],0)+num(_r[_dcol])
+  _bad={d for d,v in _dau_by_day.items() if v<=0}
+  if _bad:
+      print("  [warn] 剔除残缺日(DAU=0,数据未跑完):", sorted(_bad))
+      mrows=[r for r in mrows if str(r[0])[:10] not in _bad]
   cut=min((str(r[0])[:10] for r in mrows), default="9999-99-99")
   # 按表头名定位列(BI 常在中间插列,如"支付失败uv/率",按固定列号会全错)
   hidx={}
