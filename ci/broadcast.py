@@ -1,10 +1,24 @@
 # -*- coding: utf-8 -*-
 """官网商业化数据播报 -> Lark 群自定义机器人(卡片原生表格组件 schema 2.0)。
 读 payload2.json,发近7天大盘表 + 收入环比。用法: LARK_HOOK=<webhook> python broadcast.py"""
-import json, os, urllib.request
+import json, os, urllib.request, datetime
 P=json.load(open("payload2.json"))
 HOOK=os.environ.get("LARK_HOOK")
 if not HOOK: raise SystemExit("no LARK_HOOK")
+
+# ---------- 去重:同一天(CST)只播报一次 ----------
+# 状态文件记录最近一次成功播报的 CST 日期 + 数据末日;跨 Action 运行持久化(随仓库提交)
+STATE="broadcast_state.json"
+TODAY=(datetime.datetime.utcnow()+datetime.timedelta(hours=8)).strftime("%Y-%m-%d")   # CST 今天
+DATA_LAST=P["dates"][-1]
+FORCE=os.environ.get("FORCE_BROADCAST")=="1"
+_st={}
+if os.path.exists(STATE):
+    try: _st=json.load(open(STATE))
+    except Exception: _st={}
+if not FORCE and _st.get("last_sent_cst")==TODAY:
+    print("SKIP: 今天(%s)已播报过(数据末日 %s),不重复发送。需强制发送请设 FORCE_BROADCAST=1"%(TODAY,_st.get("data_last")))
+    raise SystemExit(0)
 dates=P["dates"]; rev=P["rev"]; dau=P["dau"]; pr=P["payrate"]; suv=P["subuv"]; srev=P["subrev_d"]; n=len(dates)
 comma=lambda v: format(int(round(v)), ",")
 arpu=lambda i: rev[i]/dau[i] if dau[i] else 0
@@ -38,4 +52,13 @@ card={"msg_type":"interactive","card":{
     {"tag":"hr"},
     {"tag":"markdown","content":summ+"\n<font color='grey-500'>官网直充口径 · 环比均为收入 · </font>[进看板查看](https://luojingyu-max.github.io/reelshort-web-commercial-dashboard/)"}]}}}
 r=urllib.request.urlopen(urllib.request.Request(HOOK, data=json.dumps(card).encode(), headers={"Content-Type":"application/json"}))
-print("sent:", r.read().decode())
+resp=r.read().decode()
+print("sent:", resp)
+# 仅在 Lark 确认成功时记账,失败不写(下次仍会重试)
+if '"code":0' in resp or '"StatusCode":0' in resp:
+    json.dump({"last_sent_cst":TODAY,"data_last":DATA_LAST,
+               "sent_at_utc":datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")},
+              open(STATE,"w"), ensure_ascii=False, indent=1)
+    print("state written:", TODAY, DATA_LAST)
+else:
+    print("WARN: Lark 未返回成功码,不写状态文件(下次会重试)")

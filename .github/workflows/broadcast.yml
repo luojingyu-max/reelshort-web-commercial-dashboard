@@ -1,11 +1,17 @@
 name: daily-broadcast
 on:
-  workflow_dispatch: {}            # 手动测试
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '忽略去重、强制发送(1=强制)'
+        required: false
+        default: '0'
   schedule:
-    - cron: '30 1 * * 1-5'         # 09:30 CST(UTC+8)工作日;GitHub cron 为 UTC,实际可能延迟几分钟
+    - cron: '07 1 * * 1-5'         # 09:07 CST 主班次(错峰,避开整点排队)
+    - cron: '47 3 * * 1-5'         # 11:47 CST 兜底班次(主班次被延迟/丢弃时补发,已发过则自动跳过)
 
 permissions:
-  contents: read
+  contents: write                  # 需要写回 broadcast_state.json
 
 concurrency:
   group: broadcast
@@ -27,7 +33,22 @@ jobs:
         env:
           DASH_PW: ${{ secrets.DASH_PW }}
           LARK_HOOK: ${{ secrets.LARK_HOOK }}
+          FORCE_BROADCAST: ${{ github.event.inputs.force }}
         run: |
           node dataenc.mjs decrypt-all
           python ci_build_payload.py
           python broadcast.py
+      - name: Persist broadcast state
+        run: |
+          if git diff --quiet -- ci/broadcast_state.json 2>/dev/null && ! git status --porcelain ci/broadcast_state.json | grep -q .; then
+            echo "state unchanged (可能被去重跳过),不提交"
+            exit 0
+          fi
+          git config user.email "actions@github.com"
+          git config user.name "github-actions"
+          git add ci/broadcast_state.json
+          git commit -m "chore: broadcast state $(date -u +%Y-%m-%dT%H:%MZ) [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && break
+            echo "retry $i"; sleep 5
+          done
