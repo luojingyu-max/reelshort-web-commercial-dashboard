@@ -75,7 +75,11 @@ else:
              and len({str(r[c]) for r in mrows[:200]})>3), 1)
   SUM={"dau":col("DAU"),"view":col("观看uv"),"reach":col("触达付费集uv"),"order":col("创建订单uv"),
        "payok_uv":col("支付成功uv"),"payuv":col("总付费uv"),"coin":col("金币充值uv"),"sub":col("订阅uv"),
-       "renew":col("续订uv"),"rev":col("总收入"),"subrev":col("订阅(续订)收入")}
+       "rev":col("总收入"),"subrev":col("订阅(续订)收入")}
+  # 续订uv:BI 9/04 起删除该列、改为 1/2/3期续订人数,故用 订阅uv − 首订uv 推导
+  _renew_i = hidx.get("续订uv")
+  if _renew_i is not None: SUM["renew"]=_renew_i
+  else: SUM["fo"]=col("首订uv")
   ltv0_i=col("ltv0")
   agg={}
   for r in mrows:
@@ -98,7 +102,8 @@ else:
       o[4]=a["dau"]; o[5]=a["view"]; o[7]=a["reach"]; o[9]=a["order"]
       o[11]=a["payuv"]                                          # 老充值uv=总付费uv
       o[12]=(a["payok_uv"]/a["order"]) if a["order"] else 0      # 支付成功率(重算)
-      o[14]=a["coin"]; o[16]=a["sub"]; o[20]=a["renew"]
+      _rn = a["renew"] if "renew" in a else max(a.get("sub",0)-a.get("fo",0), 0)
+      o[14]=a["coin"]; o[16]=a["sub"]; o[20]=_rn
       o[22]=a["rev"]; o[25]=a["subrev"]
       o[30]=(a["rev"]/a["payuv"]) if a["payuv"] else 0           # ARPPU(重算)
       for j in range(31): o[32+j]=(a["_ltv"][j]/a["dau"]) if a["dau"] else 0   # LTV: DAU加权
