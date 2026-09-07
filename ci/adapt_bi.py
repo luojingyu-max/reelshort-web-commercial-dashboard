@@ -125,11 +125,25 @@ _PAID2={"未付费用户","已付费用户"}
 _pc=1 if any(str(r[1]) in _PAID2 for r in _x1[:50]) else 2
 _cc=2 if _pc==1 else 1          # 国家列
 print("  [交叉表1] 付费列=维度%d 国家列=维度%d 策略列=维度4"%(_pc+1,_cc+1))
+# 目标16列按表头名取(BI 9/07 改版:删曝光pv、新增支付失败/取消/d7-d30续订/rev/折扣率)
+_h1raw=list(sh("交叉表1").iter_rows(min_row=1, max_row=1, values_only=True))[0]
+_h1={str(v).strip():i for i,v in enumerate(_h1raw) if v}
+def _c1(*names, default=None):
+    for n in names:
+        if n in _h1: return _h1[n]
+    return default
+_MAP=[("曝光pv","exposure_pv"),("曝光uv","exposure_uv"),("充值pv",),("充值uv",),
+      ("金币充值pv",),("金币充值uv",),("首订pv",),("首订uv",),
+      ("总收入","当日总收入"),("金币充值收入",),("首订收入",),("付费后播放uv",)]
+_idx1=[_c1(*names) for names in _MAP]
+print("  [交叉表1] 指标列位:",_idx1)
 for r in _x1:
     o=[0]*16
     o[0]=str(r[0])[:10]; o[1]=r[_pc]; o[2]=r[3]; o[3]=r[_cc]
-    o[4]=r[4]; o[5]=r[5]; o[6]=r[6]; o[7]=r[7]; o[8]=r[9]; o[9]=r[10]
-    o[10]=r[11]; o[11]=r[12]; o[12]=r[13]; o[13]=r[14]; o[14]=r[15]; o[15]=r[16]
+    for j,ci in enumerate(_idx1):
+        o[4+j]= num(r[ci]) if (ci is not None and ci < len(r)) else 0
+    # 曝光pv 缺失时用 曝光uv 兜底,避免下游按pv计算时为0
+    if _idx1[0] is None: o[4]=o[5]
     w.append(o); add+=1
 out.save(f"{D}/策略交叉表.xlsx"); print("策略交叉表 (界<%s): 保留%d + 新增%d"%(cut,kept,add))
 
