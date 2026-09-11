@@ -9,7 +9,7 @@
  交叉表3(SKU):     日期/SKU/价格/类型/国家(16列原生)
  SEO监控明细(引流App): 维度2=官网引流APP; 支付成功uv11,订阅uv16,总收入25,广告31
 """
-import openpyxl, warnings, re, os, glob
+import openpyxl, warnings, re, os, glob, json
 warnings.simplefilter("ignore")
 def num(x):
     try: return float(x)
@@ -109,6 +109,34 @@ else:
       for j in range(31): o[32+j]=(a["_ltv"][j]/a["dau"]) if a["dau"] else 0   # LTV: DAU加权
       w.append(o); add+=1
   out.save(f"{D}/官网监控明细_recent.xlsx")
+  # ---- extras.json:播报用的补充日指标(支付失败/取消、D0次留),按日合并、跨天累积 ----
+  try:
+      _fi=hidx.get("发起支付后支付失败uv"); _ci=hidx.get("发起支付后取消支付uv")
+      _oi=hidx.get("创建订单uv"); _ri=hidx.get("次日留存率"); _d0col=None
+      for _c in dimc:
+          if any(str(_r[_c]) in _D0 for _r in mrows[:50]): _d0col=_c; break
+      _ex={}
+      _p=f"{D}/../extras.json"
+      if os.path.exists(_p):
+          try: _ex=json.load(open(_p))
+          except Exception: _ex={}
+      _acc={}
+      for r in mrows:
+          d=str(r[0])[:10]; a=_acc.setdefault(d,{"fail":0.0,"cancel":0.0,"order":0.0,"d0dau":0.0,"d0ret":0.0})
+          a["fail"]+=num(r[_fi]) if _fi is not None else 0
+          a["cancel"]+=num(r[_ci]) if _ci is not None else 0
+          a["order"]+=num(r[_oi]) if _oi is not None else 0
+          if _d0col is not None and str(r[_d0col])=="D0" and _ri is not None:
+              _dd=num(r[dau_i]); a["d0dau"]+=_dd; a["d0ret"]+=num(r[_ri])*_dd
+      for d,a in _acc.items():
+          if a["order"]<=0: continue          # 残缺日不写
+          _ex[d]={"fail_rate": round(a["fail"]/a["order"]*100,2),
+                  "cancel_rate": round(a["cancel"]/a["order"]*100,2),
+                  "d0_ret": round(a["d0ret"]/a["d0dau"]*100,2) if a["d0dau"] else None}
+      json.dump(dict(sorted(_ex.items())), open(_p,"w"), ensure_ascii=False, indent=1)
+      print("  extras.json 更新 %d 天(累计 %d 天)"%(len(_acc),len(_ex)))
+  except Exception as e:
+      print("  [warn] extras.json 生成失败:",e)
   print("官网监控明细 (来源%s DAU列%d 付费列%d 国家列%d 界<%s): 保留%d + 聚合后新增%d(原始%d行)"%(
       "MON_FILE" if MON else "工作簿", dau_i, pcol, ccol, cut, kept, add, len(mrows)))
 

@@ -28,16 +28,35 @@ idx=list(range(max(0,n-7), n))[::-1]   # 最新日期在最上
 SD={r[0]:r for r in P.get("site_detail",[])}
 vrate=lambda d: (SD[d][3] if d in SD else 0)
 okrate=lambda d: (SD[d][9] if d in SD else 0)
-cols=[{"name":"date","display_name":"日期","data_type":"text","width":"80px"},
+orate=lambda d: (SD[d][7] if d in SD else 0)          # 创建订单率%(订单/触达)
+# extras.json:支付失败率 / D0次留(适配器生成,随仓库持久化)
+EX={}
+for _p in ("extras.json","ci/extras.json"):
+    if os.path.exists(_p):
+        try: EX=json.load(open(_p)); break
+        except Exception: pass
+_WD=["周一","周二","周三","周四","周五","周六","周日"]
+def dlabel(d):
+    y,m,dd=int(d[:4]),int(d[5:7]),int(d[8:10])
+    return "%d.%d %s"%(m,dd,_WD[datetime.date(y,m,dd).weekday()])
+fr=lambda d: EX.get(d,{}).get("fail_rate")
+d0r=lambda d: EX.get(d,{}).get("d0_ret")
+fmtp=lambda v,f="%.1f%%": (f%v) if isinstance(v,(int,float)) else "—"
+cols=[{"name":"date","display_name":"日期","data_type":"text","width":"96px"},
       {"name":"dau","display_name":"DAU","data_type":"text","horizontal_align":"right","width":"88px"},
       {"name":"vr","display_name":"观看率","data_type":"text","horizontal_align":"right","width":"80px"},
+      {"name":"orr","display_name":"订单创建率","data_type":"text","horizontal_align":"right","width":"94px"},
       {"name":"pr","display_name":"付费率","data_type":"text","horizontal_align":"right","width":"80px"},
       {"name":"ok","display_name":"充值成功率","data_type":"text","horizontal_align":"right","width":"94px"},
+      {"name":"fr","display_name":"支付失败率","data_type":"text","horizontal_align":"right","width":"94px"},
+      {"name":"d0","display_name":"D0次留","data_type":"text","horizontal_align":"right","width":"84px"},
       {"name":"rev","display_name":"收入","data_type":"text","horizontal_align":"right","width":"88px"},
       {"name":"arpu","display_name":"ARPU","data_type":"text","horizontal_align":"right","width":"80px"},
       {"name":"sarppu","display_name":"订阅ARPPU","data_type":"text","horizontal_align":"right","width":"94px"}]
-rows=[{"date":dates[i][5:],"dau":comma(dau[i]),"vr":"%.1f%%"%vrate(dates[i]),"pr":"%.3f%%"%(pr[i] or 0),
-       "ok":"%.1f%%"%okrate(dates[i]),"rev":"$"+comma(rev[i]),"arpu":"$%.3f"%arpu(i),"sarppu":"$%.1f"%subarppu(i)} for i in idx]
+rows=[{"date":dlabel(dates[i]),"dau":comma(dau[i]),"vr":"%.1f%%"%vrate(dates[i]),
+       "orr":"%.2f%%"%orate(dates[i]),"pr":"%.3f%%"%(pr[i] or 0),
+       "ok":"%.1f%%"%okrate(dates[i]),"fr":fmtp(fr(dates[i])),"d0":fmtp(d0r(dates[i]),"%.2f%%"),
+       "rev":"$"+comma(rev[i]),"arpu":"$%.3f"%arpu(i),"sarppu":"$%.1f"%subarppu(i)} for i in idx]
 dm={m["key"]:m for m in P["dash_mom"]["metrics"]}
 mom=dm["rev"]["mom"]; wow=dm["rev"]["wow"]
 yday=((rev[-1]-rev[-2])/rev[-2]*100) if (n>1 and rev[-2]) else None
