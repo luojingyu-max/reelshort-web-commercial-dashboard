@@ -126,13 +126,13 @@ else:
           a["fail"]+=num(r[_fi]) if _fi is not None else 0
           a["cancel"]+=num(r[_ci]) if _ci is not None else 0
           a["order"]+=num(r[_oi]) if _oi is not None else 0
-          if _d0col is not None and str(r[_d0col])=="D0" and _ri is not None:
-              _dd=num(r[dau_i]); a["d0dau"]+=_dd; a["d0ret"]+=num(r[_ri])*_dd
+          if _ri is not None:
+              _dd=num(r[dau_i]); a["d0dau"]+=_dd; a["d0ret"]+=num(r[_ri])*_dd   # 全体次留(DAU加权)
       for d,a in _acc.items():
           if a["order"]<=0: continue          # 残缺日不写
           _ex[d]={"fail_rate": round(a["fail"]/a["order"]*100,2),
                   "cancel_rate": round(a["cancel"]/a["order"]*100,2),
-                  "d0_ret": round(a["d0ret"]/a["d0dau"]*100,2) if a["d0dau"] else None}
+                  "ret1": (round(a["d0ret"]/a["d0dau"]*100,2) if (a["d0dau"] and a["d0ret"]>0) else None)}
       json.dump(dict(sorted(_ex.items())), open(_p,"w"), ensure_ascii=False, indent=1)
       print("  extras.json 更新 %d 天(累计 %d 天)"%(len(_acc),len(_ex)))
   except Exception as e:

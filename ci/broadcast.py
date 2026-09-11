@@ -40,7 +40,7 @@ def dlabel(d):
     y,m,dd=int(d[:4]),int(d[5:7]),int(d[8:10])
     return "%d.%d %s"%(m,dd,_WD[datetime.date(y,m,dd).weekday()])
 fr=lambda d: EX.get(d,{}).get("fail_rate")
-d0r=lambda d: EX.get(d,{}).get("d0_ret")
+r1=lambda d: EX.get(d,{}).get("ret1")
 fmtp=lambda v,f="%.1f%%": (f%v) if isinstance(v,(int,float)) else "—"
 cols=[{"name":"date","display_name":"日期","data_type":"text","width":"96px"},
       {"name":"dau","display_name":"DAU","data_type":"text","horizontal_align":"right","width":"88px"},
@@ -49,13 +49,13 @@ cols=[{"name":"date","display_name":"日期","data_type":"text","width":"96px"},
       {"name":"pr","display_name":"付费率","data_type":"text","horizontal_align":"right","width":"80px"},
       {"name":"ok","display_name":"充值成功率","data_type":"text","horizontal_align":"right","width":"94px"},
       {"name":"fr","display_name":"支付失败率","data_type":"text","horizontal_align":"right","width":"94px"},
-      {"name":"d0","display_name":"D0次留","data_type":"text","horizontal_align":"right","width":"84px"},
+      {"name":"ret1","display_name":"次日留存","data_type":"text","horizontal_align":"right","width":"88px"},
       {"name":"rev","display_name":"收入","data_type":"text","horizontal_align":"right","width":"88px"},
       {"name":"arpu","display_name":"ARPU","data_type":"text","horizontal_align":"right","width":"80px"},
       {"name":"sarppu","display_name":"订阅ARPPU","data_type":"text","horizontal_align":"right","width":"94px"}]
 rows=[{"date":dlabel(dates[i]),"dau":comma(dau[i]),"vr":"%.1f%%"%vrate(dates[i]),
        "orr":"%.2f%%"%orate(dates[i]),"pr":"%.3f%%"%(pr[i] or 0),
-       "ok":"%.1f%%"%okrate(dates[i]),"fr":fmtp(fr(dates[i])),"d0":fmtp(d0r(dates[i]),"%.2f%%"),
+       "ok":"%.1f%%"%okrate(dates[i]),"fr":fmtp(fr(dates[i])),"ret1":fmtp(r1(dates[i])),
        "rev":"$"+comma(rev[i]),"arpu":"$%.3f"%arpu(i),"sarppu":"$%.1f"%subarppu(i)} for i in idx]
 dm={m["key"]:m for m in P["dash_mom"]["metrics"]}
 mom=dm["rev"]["mom"]; wow=dm["rev"]["wow"]
