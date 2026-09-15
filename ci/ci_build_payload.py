@@ -6,7 +6,7 @@
   data/收入明细.xlsx            渠道日收入 (1/1-8/07,官网/引流) —— 官网vs引流
   strategy.json                一期/策略定义(不变)
 口径:收入=金币充值+订阅(续订)+广告。列(4维表):DAU=4,充值uv=11,订阅uv=16,总收入=22,ltv0..30=32..62。"""
-import json, datetime, re, warnings
+import json, datetime, re, warnings, os
 warnings.simplefilter("ignore")
 import openpyxl
 from collections import defaultdict
@@ -305,7 +305,19 @@ ranges={"dash":_rg(dates[0],dates[-1]),
         "sku":_rg(sku_dates[0],sku_dates[-1]) if sku_dates else "",
         "phase2_pre":_rg(*PRE),"phase2_post":_rg(*POST),"maxd":maxd}
 
+# ---- 次日留存率 / 1期续订率:来自 extras.json(适配器产出),按 dates 对齐,缺失填 None ----
+_ex={}
+for _p in ("extras.json","ci/extras.json"):
+    if os.path.exists(_p):
+        try: _ex=json.load(open(_p)); break
+        except Exception: pass
+ret1=[(_ex.get(d) or {}).get("ret1") for d in dates]
+renew1=[(_ex.get(d) or {}).get("renew1") for d in dates]
+_r1n=sum(1 for v in ret1 if v is not None); _rnn=sum(1 for v in renew1 if v is not None)
+print("  extras 对齐: 次留 %d 天 / 1期续订 %d 天(共 %d 天,其余为 None 断点)"%(_r1n,_rnn,len(dates)))
+
 P={"gen":dates[-1],"dates":dates,"dau":dau,"rev":rev,"payrate":payrate,"subrate":subrate,"arppu":arppu,
+   "ret1":ret1,"renew1":renew1,
    "chargeuv":chargeuv,"subuv":subuv,"subrev_d":subrev_d,"ltv":ltv,"ltv_date":ltv_date,
    "kpi":{"dau":kpi(dau),"payrate":kpi(payrate),"arppu":kpi(arppu),"rev":kpi(rev),"ltv30":ltv[30],"rev30":rev30},
    "app":app,"ov_dates":ov_dates,"ov_site":ov_site,"ov_app":ov_app,

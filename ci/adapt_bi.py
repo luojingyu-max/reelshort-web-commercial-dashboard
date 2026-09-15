@@ -116,7 +116,9 @@ else:
   try:
       _fi=hidx.get("发起支付后支付失败uv"); _ci=hidx.get("发起支付后取消支付uv")
       _oi=next((hidx[_n] for _n in _ORDER if _n in hidx), None)
-      _ri=hidx.get("次日留存率"); _d0col=None
+      _ri=hidx.get("次日留存率")
+      _rn1=hidx.get("1期续订人数"); _foi=hidx.get("首订uv")   # 1期续订率 = Σ1期续订人数 / Σ首订uv
+      _d0col=None
       for _c in dimc:
           if any(str(_r[_c]) in _D0 for _r in mrows[:50]): _d0col=_c; break
       _ex={}
@@ -126,17 +128,27 @@ else:
           except Exception: _ex={}
       _acc={}
       for r in mrows:
-          d=str(r[0])[:10]; a=_acc.setdefault(d,{"fail":0.0,"cancel":0.0,"order":0.0,"d0dau":0.0,"d0ret":0.0})
+          d=str(r[0])[:10]; a=_acc.setdefault(d,{"fail":0.0,"cancel":0.0,"order":0.0,"d0dau":0.0,"d0ret":0.0,"rn1":0.0,"fo":0.0})
           a["fail"]+=num(r[_fi]) if _fi is not None else 0
           a["cancel"]+=num(r[_ci]) if _ci is not None else 0
           a["order"]+=num(r[_oi]) if _oi is not None else 0
+          a["rn1"]+=num(r[_rn1]) if _rn1 is not None else 0
+          a["fo"]+=num(r[_foi]) if _foi is not None else 0
           if _ri is not None:
               _dd=num(r[dau_i]); a["d0dau"]+=_dd; a["d0ret"]+=num(r[_ri])*_dd   # 全体次留(DAU加权)
       for d,a in _acc.items():
           if a["order"]<=0: continue          # 残缺日不写
-          _ex[d]={"fail_rate": round(a["fail"]/a["order"]*100,2),
-                  "cancel_rate": round(a["cancel"]/a["order"]*100,2),
-                  "ret1": (round(a["d0ret"]/a["d0dau"]*100,2) if (a["d0dau"] and a["d0ret"]>0) else None)}
+          _new={"fail_rate": round(a["fail"]/a["order"]*100,2),
+                "cancel_rate": round(a["cancel"]/a["order"]*100,2),
+                "ret1": (round(a["d0ret"]/a["d0dau"]*100,2) if (a["d0dau"] and a["d0ret"]>0) else None),
+                "renew1": (round(a["rn1"]/a["fo"]*100,2) if (a["fo"] and a["rn1"]>0) else None)}
+          # ret1/renew1 是只增不减的队列指标:同一天被多次导出时取最大值,
+          # 否则当天早上那份未跑完的会把已成熟的值压回去
+          _old=_ex.get(d) or {}
+          for _k in ("ret1","renew1"):
+              if _new[_k] is None: _new[_k]=_old.get(_k)
+              elif _old.get(_k) is not None: _new[_k]=max(_old[_k],_new[_k])
+          _ex[d]=_new
       json.dump(dict(sorted(_ex.items())), open(_p,"w"), ensure_ascii=False, indent=1)
       print("  extras.json 更新 %d 天(累计 %d 天)"%(len(_acc),len(_ex)))
   except Exception as e:

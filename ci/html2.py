@@ -302,10 +302,15 @@ document.getElementById('dash-kpi').innerHTML=[
 
 /* ---- small multiples (dash) ---- */
 const MINIS=[['DAU',D.dau,int],['总收入',D.rev,usd],['付费率',D.payrate,x=>pc(x,3)],['订阅率',D.subrate,x=>pc(x,3)],
- ['ARPPU',D.arppu,usd1],['充值uv',D.chargeuv,int],['订阅uv',D.subuv,int]];
+ ['ARPPU',D.arppu,usd1],['充值uv',D.chargeuv,int],['订阅uv',D.subuv,int],
+ // 次留/1期续订只有 8/01 起的数据(历史BI导出每份仅含最近3-5天,再往前取不到),前段为断点
+ ['次日留存率',D.ret1||[],x=>pc(x,2)],['1期续订率',D.renew1||[],x=>pc(x,1)]];
 document.getElementById('minis').innerHTML=MINIS.map((m,i)=>{
  const last=[...m[1]].reverse().find(v=>v!=null);
- return `<div class="card"><div class="mini"><div class="lbl">${m[0]}</div><div class="v">${m[2](last)}</div></div><div class="cwrap sm"><canvas id="mini${i}"></canvas></div></div>`;
+ // 稀疏序列:标注实际有数据的起始日,避免看成"前面掉到0"
+ const fj=m[1].findIndex(v=>v!=null);
+ const sub=(fj>0&&D.dates[fj])?`<div class="lbl">${D.dates[fj].slice(5)} 起</div>`:'';
+ return `<div class="card"><div class="mini"><div class="lbl">${m[0]}</div><div class="v">${last==null?'—':m[2](last)}</div>${sub}</div><div class="cwrap sm"><canvas id="mini${i}"></canvas></div></div>`;
 }).join('');
 
 /* ---- render per tab ---- */
@@ -354,7 +359,8 @@ function renderDash(){
  mk('c_appuv',{type:'line',data:{labels:D.app.map(x=>x.date),datasets:[L(D.app.map(x=>x.pay_uv),sc[0],'付费uv'),L(D.app.map(x=>x.sub_uv),sc[2],'订阅uv')]},options:base()});
  MINIS.forEach((m,i)=>{let o=base();o.plugins.legend.display=false;o.plugins.tooltip.enabled=true;
   o.scales.x.display=true;o.scales.x.grid.display=false;o.scales.x.ticks.maxTicksLimit=2;o.scales.x.ticks.maxRotation=0;o.scales.x.ticks.font={size:9};o.scales.x.ticks.color=css('--muted');o.scales.y.display=false;o.elements={point:{radius:0}};
-  mk('mini'+i,{type:'line',data:{labels:D.dates,datasets:[{data:m[1],borderColor:css('--s1'),borderWidth:1.8,pointRadius:0,pointHoverRadius:3,tension:.3,fill:true,backgroundColor:'rgba(42,120,214,.10)'}]},options:o});});
+  // spanGaps:稀疏序列(次留/续订)只在有值区间连线,None 不当成 0
+  mk('mini'+i,{type:'line',data:{labels:D.dates,datasets:[{data:m[1],borderColor:css('--s1'),borderWidth:1.8,pointRadius:0,pointHoverRadius:3,tension:.3,fill:true,backgroundColor:'rgba(42,120,214,.10)',spanGaps:true}]},options:o});});
  top20chart('c_t20rev','cap_t20rev','rev',usd,0);
  top20chart('c_t20pay','cap_t20pay','payrate',v=>Number(v).toFixed(3)+'%',1000);
  top20chart('c_t20sub','cap_t20sub','subrev',usd,0);
