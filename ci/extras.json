@@ -18,5 +18,25 @@
   "fail_rate": 7.95,
   "cancel_rate": 14.93,
   "ret1": null
+ },
+ "2026-09-10": {
+  "fail_rate": 1.87,
+  "cancel_rate": 13.43,
+  "ret1": 8.78
+ },
+ "2026-09-11": {
+  "fail_rate": 4.31,
+  "cancel_rate": 13.39,
+  "ret1": 7.94
+ },
+ "2026-09-12": {
+  "fail_rate": 4.91,
+  "cancel_rate": 13.25,
+  "ret1": 8.17
+ },
+ "2026-09-13": {
+  "fail_rate": 5.45,
+  "cancel_rate": 13.38,
+  "ret1": null
  }
 }

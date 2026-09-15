@@ -73,7 +73,10 @@ else:
   pcol=next((c for c in dimc if any(str(r[c]) in _PAID for r in mrows[:50])), 2)
   ccol=next((c for c in dimc if c!=pcol and not any(str(r[c]) in _D0 for r in mrows[:50])
              and len({str(r[c]) for r in mrows[:200]})>3), 1)
-  SUM={"dau":col("DAU"),"view":col("观看uv"),"reach":col("触达付费集uv"),"order":col("创建订单uv"),
+  # 9/15: BI 把 商品点击uv 与 创建订单uv 合并为"商品点击/订单创建uv"(后续列整体左移1、末尾新增宽口径"支付失败uv")
+  # 已用 订单创建率/支付成功率/支付失败率 三个比率列反推验证:该合并列 == 旧 创建订单uv
+  _ORDER=("创建订单uv","商品点击/订单创建uv")
+  SUM={"dau":col("DAU"),"view":col("观看uv"),"reach":col("触达付费集uv"),"order":col(*_ORDER),
        "payok_uv":col("支付成功uv"),"payuv":col("总付费uv"),"coin":col("金币充值uv"),"sub":col("订阅uv"),
        "rev":col("总收入"),"subrev":col("订阅(续订)收入")}
   # 续订uv:BI 9/04 起删除该列、改为 1/2/3期续订人数,故用 订阅uv − 首订uv 推导
@@ -112,7 +115,8 @@ else:
   # ---- extras.json:播报用的补充日指标(支付失败/取消、D0次留),按日合并、跨天累积 ----
   try:
       _fi=hidx.get("发起支付后支付失败uv"); _ci=hidx.get("发起支付后取消支付uv")
-      _oi=hidx.get("创建订单uv"); _ri=hidx.get("次日留存率"); _d0col=None
+      _oi=next((hidx[_n] for _n in _ORDER if _n in hidx), None)
+      _ri=hidx.get("次日留存率"); _d0col=None
       for _c in dimc:
           if any(str(_r[_c]) in _D0 for _r in mrows[:50]): _d0col=_c; break
       _ex={}
