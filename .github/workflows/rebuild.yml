@@ -28,8 +28,20 @@ jobs:
         env:
           DASH_PW: ${{ secrets.DASH_PW }}
           UPLOAD_TOKEN: ${{ secrets.UPLOAD_TOKEN }}
+          LARK_APP_ID: ${{ secrets.LARK_APP_ID }}
+          LARK_APP_SECRET: ${{ secrets.LARK_APP_SECRET }}
         run: |
           node dataenc.mjs decrypt-all      # ci/data/*.enc + strategy.json.enc -> 明文(仅 runner 内,不提交)
+          # 表1 策略清单/定价 + 效果对比:同步自 Lark。未配 LARK_APP_* 时跳过,沿用仓库里已提交的快照
+          if [ -n "$LARK_APP_ID" ] && [ -n "$LARK_APP_SECRET" ]; then
+            if (cd .. && python3 ci/sync_strategy_lark.py); then
+              node dataenc.mjs encrypt strategy.json strategy.json.enc   # 同步结果回写加密快照,随 index.html 一起提交
+            else
+              echo "::warning::Lark 策略同步失败,沿用已提交快照"
+            fi
+          else
+            echo "未配置 LARK_APP_ID/SECRET,跳过 Lark 同步,沿用已提交快照"
+          fi
           python ci_build_payload.py
           python html2.py
           node ci_encrypt.js
@@ -38,7 +50,7 @@ jobs:
         run: |
           git config user.name "dashboard-bot"
           git config user.email "dashboard-bot@users.noreply.github.com"
-          git add index.html
+          git add index.html ci/strategy.json.enc
           if git diff --cached --quiet; then
             echo "no changes"
           else

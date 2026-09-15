@@ -191,7 +191,12 @@ footer{margin-top:32px;color:var(--muted);font-size:11.5px;line-height:1.6}
   <div class="card"><h3>二期 · 未付费</h3><div style="overflow:auto;max-height:340px"><table id="t_d2u"></table></div></div>
   <div class="card"><h3>二期 · 已付费</h3><div style="overflow:auto;max-height:340px"><table id="t_d2p"></table></div></div>
  </div>
- <details><summary>策略定义明细(表1 · 面板策略记录)</summary><div style="overflow-x:auto;margin-top:10px"><table id="t_strat"></table></div></details>
+ <h2>面板策略记录(表1 · 与 Lark 文档同步)</h2>
+ <p class="sub" style="margin:-6px 0 12px">策略清单与定价<b>直接同步自 Lark《面板策略记录》表1</b>,下方效果对比由各策略自己的<b>上架/下架时间</b>自动划窗重算 —— 表格改了,这里跟着变,无需手工维护。<span class="badge" id="strat_sync"></span></p>
+ <div class="card"><h3>策略效果自动对比(按各自上架日划窗 · 含 DiD 净效应)</h3>
+  <p class="cap">前窗口=紧邻上架日之前的等长区间,后窗口=上架日起最长21天(已下架的截到下架前一天)。<b>盘口已分层</b>:已付费/未付费盘只统计对应付费状态的用户。<b>DiD 净效应</b>=本策略收入变化 − 同期对照组(未被任何点名策略覆盖的国家)变化,单位 pp。<b>「提示」列标注了基线过短/量级过小的行,这些百分比不可当结论。</b></p>
+  <div style="overflow:auto;max-height:520px"><table id="t_streff"></table></div></div>
+ <details style="margin-top:12px"><summary>策略定义全字段(表1 原样 · 含金币档位/周月年卡/配置ID)</summary><div style="overflow-x:auto;margin-top:10px"><table id="t_strat"></table></div></details>
 </section>
 
 <section class="panel" id="p-weekly">
@@ -447,10 +452,52 @@ function renderStrategy(){
  g('p2-note').innerHTML=`二期按同口径<b>实时增量计算</b>——前窗 <b>${R.phase2_pre}</b> / 后窗 <b>${R.phase2_post}</b>(后窗随最新日 ${R.maxd} 滚动;IAP=日均总收入)。当时该 Lark 表 App 无写权限,故此处为计算值;LTV 后段未成熟仅供参考。`;
  document.getElementById('concl2').innerHTML=
   `二期按<b>付费状态</b>分层(7.17),对比窗口 前 <b>${R.phase2_pre}</b> / 后 <b>${R.phase2_post}</b>。<br><b>已付费</b>:IAP 上涨 ${upc(p).length}/${p.length} 国,策略生效,建议保留推广。<br><b>未付费</b>:分化明显——涨的 ${upc(u).join('、')||'无'};跌的 ${dnc(u).join('、')||'无'} 多为成熟市场,需回调定价或再测。`;
- // strategy definition table
- const sh=D.strategy_header;
- document.getElementById('t_strat').innerHTML='<thead><tr>'+['层级','国家','策略名称/画像ID','上架时间','盘口','用户画像'].map(x=>`<th>${x}</th>`).join('')+'</tr></thead><tbody>'+
-  D.strategy.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[10]}</td><td>${r[11]}</td><td style="text-align:left">${r[5]}</td></tr>`).join('')+'</tbody>';
+ // ---- 表1 面板策略记录(按表头名取列,列顺序变化不影响渲染) ----
+ (function(){
+  const sh=D.strategy_header||[], si=n=>sh.indexOf(n);
+  const ss=D.strat_synced;
+  if(ss) document.getElementById('strat_sync').textContent=
+    `已同步 ${ss.n} 条 · ${String(ss.at).replace('T',' ').replace('Z',' UTC')} · 数据区间 ${ss.data_range} · 对照组 ${ss.ctrl_n} 国`;
+  // 效果对比表
+  const eh=D.strat_eff_header||[], ee=D.strat_eff||[];
+  if(eh.length){
+   const pctIdx=new Set([eh.indexOf('DAU %'),eh.indexOf('收入 %'),eh.indexOf('ARPPU %')]);
+   const didIdx=eh.indexOf('收入净效应DiD(pp)'), tipIdx=eh.indexOf('口径/提示');
+   const moneyIdx=new Set([eh.indexOf('收入/日 前'),eh.indexOf('收入/日 后')]);
+   const sgn=v=>v==null?'—':`<span class="${v>=0?'up':'dn'}">${v>=0?'+':''}${v.toFixed(1)}%</span>`;
+   const sgnp=v=>v==null?'—':`<span class="${v>=0?'up':'dn'}">${v>=0?'+':''}${v.toFixed(1)}pp</span>`;
+   // 可比行优先,其次按 DiD 降序
+   const ord=ee.map((r,i)=>[r,i]).sort((a,b)=>{
+     const ca=String(a[0][tipIdx]||'').startsWith('可比')?0:1, cb=String(b[0][tipIdx]||'').startsWith('可比')?0:1;
+     if(ca!==cb) return ca-cb;
+     const da=a[0][didIdx], db=b[0][didIdx];
+     if(da==null&&db==null) return a[1]-b[1];
+     if(da==null) return 1; if(db==null) return -1;
+     return db-da;
+   }).map(x=>x[0]);
+   document.getElementById('t_streff').innerHTML='<thead><tr>'+eh.map((c,i)=>
+     `<th${i<5?' style="text-align:left"':''}>${c}</th>`).join('')+'</tr></thead><tbody>'+
+    ord.map(r=>'<tr>'+r.map((v,i)=>{
+      if(v==null) return '<td>—</td>';
+      if(i===didIdx) return `<td>${sgnp(v)}</td>`;
+      if(pctIdx.has(i)) return `<td>${sgn(v)}</td>`;
+      if(moneyIdx.has(i)) return `<td>${usd(v)}</td>`;
+      if(i===tipIdx){const ok=String(v).startsWith('可比');
+        return `<td style="text-align:left"><span class="badge" style="${ok?'':'color:#c2410c;border-color:#fdba74'}">${v}</span></td>`;}
+      return `<td${i<5?' style="text-align:left"':''}>${v}</td>`;
+    }).join('')+'</tr>').join('')+'</tbody>';
+  }
+  // 定义全字段表
+  const show=['层级','国家','策略名称 / 画像ID','盘口','状态','上架时间','下架时间','是否AB实验',
+              '周卡','月卡','年卡','金币档位','用户画像','优先级','配置ID'];
+  const idx=show.map(si).filter(i=>i>=0);
+  document.getElementById('t_strat').innerHTML='<thead><tr>'+idx.map(i=>`<th>${sh[i]}</th>`).join('')+'</tr></thead><tbody>'+
+   D.strategy.map(r=>'<tr>'+idx.map(i=>{
+     const v=r[i]==null?'':r[i];
+     if(sh[i]==='状态') return `<td><span class="badge" style="${v==='在线'?'':'color:#b91c1c;border-color:#fca5a5'}">${v}</span></td>`;
+     return `<td style="text-align:left;white-space:nowrap">${v}</td>`;
+   }).join('')+'</tr>').join('')+'</tbody>';
+ })();
  // 策略明细(表2)
  document.getElementById('t_d1').innerHTML='<thead><tr>'+D.panel1_header.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>'+
   D.panel1.map(r=>'<tr>'+r.map(v=>`<td>${v==null?'':v}</td>`).join('')+'</tr>').join('')+'</tbody>';

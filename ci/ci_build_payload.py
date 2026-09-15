@@ -312,6 +312,9 @@ P={"gen":dates[-1],"dates":dates,"dau":dau,"rev":rev,"payrate":payrate,"subrate"
    "targets":targets,"cur_month":cur_month,"mtd":round(mtd),"target_cur":target_cur,"dash_mom":dash_mom,
    "ctab":ctab,"cwindows":cwindows,"panel1":panel1,"panel1_header":strat["panel1_header"],
    "phase2_unpaid":phase2_unpaid,"phase2_paid":phase2_paid,"strategy":strat["strategy"],"strategy_header":strat["strategy_header"],
+   # 表1 同步产物(sync_strategy_lark.py 生成):效果自动对比 + 同步元信息。缺失时给空值,前端会跳过该卡片
+   "strat_eff":strat.get("strat_eff",[]),"strat_eff_header":strat.get("strat_eff_header",[]),
+   "strat_synced":strat.get("strat_synced"),
    "country_ltv":country_ltv,"country_ltv_table":country_ltv_table,"phase2_ltv":phase2_ltv,"funnel":funnel,
    "detail":detail,"detail_cols":detail_cols,"detail_countries":countries,
    "site_detail_cols":sd_cols,"site_detail":site_detail,
