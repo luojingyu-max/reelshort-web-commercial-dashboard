@@ -204,10 +204,10 @@
   "ret1": null
  },
  "2026-09-10": {
-  "cancel_rate": 13.43,
   "fail_rate": 1.87,
-  "renew1": null,
-  "ret1": 8.78
+  "cancel_rate": 13.43,
+  "ret1": 8.78,
+  "renew1": null
  },
  "2026-09-11": {
   "fail_rate": 4.31,
