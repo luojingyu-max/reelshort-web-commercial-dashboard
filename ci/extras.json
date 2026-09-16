@@ -210,21 +210,27 @@
   "ret1": 8.78
  },
  "2026-09-11": {
-  "cancel_rate": 13.39,
   "fail_rate": 4.31,
-  "renew1": null,
-  "ret1": 7.94
+  "cancel_rate": 13.39,
+  "ret1": 7.94,
+  "renew1": null
  },
  "2026-09-12": {
-  "cancel_rate": 13.25,
   "fail_rate": 4.91,
-  "renew1": null,
-  "ret1": 8.17
+  "cancel_rate": 13.25,
+  "ret1": 8.17,
+  "renew1": null
  },
  "2026-09-13": {
-  "cancel_rate": 13.38,
   "fail_rate": 5.45,
-  "renew1": null,
-  "ret1": null
+  "cancel_rate": 13.38,
+  "ret1": 8.18,
+  "renew1": null
+ },
+ "2026-09-14": {
+  "fail_rate": 4.72,
+  "cancel_rate": 12.26,
+  "ret1": null,
+  "renew1": null
  }
 }
