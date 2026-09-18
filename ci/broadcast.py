@@ -42,6 +42,13 @@ def dlabel(d):
 fr=lambda d: EX.get(d,{}).get("fail_rate")
 r1=lambda d: EX.get(d,{}).get("ret1")
 fmtp=lambda v,f="%.1f%%": (f%v) if isinstance(v,(int,float)) else "—"
+# 支付终态(失败/取消)埋点口径 2026-09-15 变更:此前仅约1/3订单有终态回传,
+# 之后补齐到 ~97%,失败率/取消率台阶式抬升。跨该日不可直接比较,故给旧口径值加标记。
+PAY_CALIBER_BREAK="2026-09-15"
+def frlab(d):
+    v=fr(d)
+    if not isinstance(v,(int,float)): return "—"
+    return ("%.1f%%"%v) if d>=PAY_CALIBER_BREAK else ("%.1f%%*"%v)
 cols=[{"name":"date","display_name":"日期","data_type":"text","width":"96px"},
       {"name":"dau","display_name":"DAU","data_type":"text","horizontal_align":"right","width":"88px"},
       {"name":"vr","display_name":"观看率","data_type":"text","horizontal_align":"right","width":"80px"},
@@ -55,13 +62,16 @@ cols=[{"name":"date","display_name":"日期","data_type":"text","width":"96px"},
       {"name":"sarppu","display_name":"订阅ARPPU","data_type":"text","horizontal_align":"right","width":"94px"}]
 rows=[{"date":dlabel(dates[i]),"dau":comma(dau[i]),"vr":"%.1f%%"%vrate(dates[i]),
        "orr":"%.2f%%"%orate(dates[i]),"pr":"%.3f%%"%(pr[i] or 0),
-       "ok":"%.1f%%"%okrate(dates[i]),"fr":fmtp(fr(dates[i])),"ret1":fmtp(r1(dates[i])),
+       "ok":"%.1f%%"%okrate(dates[i]),"fr":frlab(dates[i]),"ret1":fmtp(r1(dates[i])),
        "rev":"$"+comma(rev[i]),"arpu":"$%.3f"%arpu(i),"sarppu":"$%.1f"%subarppu(i)} for i in idx]
 dm={m["key"]:m for m in P["dash_mom"]["metrics"]}
 mom=dm["rev"]["mom"]; wow=dm["rev"]["wow"]
 yday=((rev[-1]-rev[-2])/rev[-2]*100) if (n>1 and rev[-2]) else None
 f=lambda v: "—" if v is None else (("🔺+%.1f%%"%v) if v>=0 else ("🔻%.1f%%"%v))
 summ="**收入环比** · 月环比 %s · 周环比 %s · 昨日对比 %s"%(f(mom), f(wow), f(yday))
+if any(d < PAY_CALIBER_BREAK for d in [dates[i] for i in idx]):
+    summ += ("\n<font color='grey-500'>* 支付失败率埋点口径 9.15 变更"
+             "(此前仅约1/3订单有终态回传,现补齐至~97%),带 * 为旧口径,勿跨 9.15 比较。</font>")
 card={"msg_type":"interactive","card":{
   "schema":"2.0",
   "config":{"wide_screen_mode":True},
