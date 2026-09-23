@@ -19,6 +19,18 @@ if os.path.exists(STATE):
 if not FORCE and _st.get("last_sent_cst")==TODAY:
     print("SKIP: 今天(%s)已播报过(数据末日 %s),不重复发送。需强制发送请设 FORCE_BROADCAST=1"%(TODAY,_st.get("data_last")))
     raise SystemExit(0)
+
+# ---------- 数据新鲜度闸门:数据没更新就不发 ----------
+# BI 09:00 的导出里"昨天"是残缺日(DAU=0)会被适配器剔除,所以本管线的数据末日
+# 正常就是 T-2;若还停在 T-3 或更早,说明今天的导出尚未入库,发出去就是旧数据。
+_t=datetime.date(*map(int,TODAY.split("-")))
+_dl=datetime.date(*map(int,DATA_LAST.split("-")))
+_lag=(_t-_dl).days
+if not FORCE and _lag>2:
+    print("SKIP: 数据末日 %s,距今 %d 天(正常应为 T-2=%s),今天的导出还没入库,不发旧数据。"
+          %(DATA_LAST,_lag,(_t-datetime.timedelta(days=2)).isoformat()))
+    print("      数据更新后重跑本工作流即可;确需发送请设 FORCE_BROADCAST=1")
+    raise SystemExit(0)
 dates=P["dates"]; rev=P["rev"]; dau=P["dau"]; pr=P["payrate"]; suv=P["subuv"]; srev=P["subrev_d"]; n=len(dates)
 comma=lambda v: format(int(round(v)), ",")
 arpu=lambda i: rev[i]/dau[i] if dau[i] else 0
