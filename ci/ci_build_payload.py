@@ -58,6 +58,21 @@ for d,a in agg.items():
     w=a["dau"] or 1
     site[d]={"dau":a["dau"],"view":a["view"],"reach":a["reach"],"order":a["order"],"uv":a["uv"],"coin":a["coin"],"sub":a["sub"],"subrev":a["subrev"],"rev":a["rev"],
              "payok":a["pw"]/a["order"] if a["order"] else 0,"arppu":a["rev"]/a["uv"] if a["uv"] else 0,"ltv":[a["lw"][k]/w for k in range(31)]}
+# ---------- 新版 BI(2026-09-30 导出起)只给「日期×渠道」,没有国家/付费状态维度 ----------
+# 大盘序列由 adapt_bi_v2.py 写入 官网大盘_渠道.xlsx,在此覆盖同日并向后延伸;
+# 国家维度无新数据,recs 自然停在最后一个旧格式日(看板「国家」Tab 会冻结,属预期)。
+_ch=f"{D}/官网大盘_渠道.xlsx"
+_chn=0
+if os.path.exists(_ch):
+    for r in ws(_ch).iter_rows(min_row=3, values_only=True):
+        d=s2d(r[0])
+        if not d: continue
+        ltv=[num(r[32+k]) if len(r)>32+k else 0 for k in range(31)]
+        site[d]={"dau":num(r[4]),"view":num(r[5]),"reach":num(r[7]),"order":num(r[9]),"uv":num(r[11]),
+                 "payok":num(r[12]),"coin":num(r[14]),"sub":num(r[16]),"subrev":num(r[25]),
+                 "rev":num(r[22]),"arppu":num(r[30]),"ltv":ltv}
+        _chn+=1
+    print("  [新版大盘] 覆盖/延伸 %d 天(渠道合计口径);国家维度无新数据,冻结在 %s"%(_chn,maxd))
 dates=sorted(site)
 dau=[round(site[d]["dau"]) for d in dates]
 rev=[round(site[d]["rev"],2) for d in dates]

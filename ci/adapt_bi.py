@@ -212,9 +212,15 @@ _M3=["充值uv","金币充值uv","订阅uv","首订uv","续订uv","充值收入"
 _idx3=[_h3[n] for n in _M3 if n in _h3]
 if len(_idx3)!=11: raise SystemExit("交叉表3 缺列,仅匹配到%d/11: %s"%(len(_idx3),[n for n in _M3 if n not in _h3]))
 print("  [交叉表3] 指标列位:",_idx3)
+# 国家列位会变:旧版 日期/SKU/价格/类型/国家(idx4);新版(10/06起)删了类型维度 → 日期/SKU/价格/国家/ALL(idx3)
+_mi=min(_idx3)
+_ccol3=next((c for c in range(1,_mi) if sum(1 for r in _x3[1:200] if str(r[c]).strip() in _SKC)>0), 4)
+_tcol3=next((c for c in range(1,_mi) if c!=_ccol3 and any(str(r[c]).strip().startswith(("0-","1-","2-")) for r in _x3[1:200])), None)
+print("  [交叉表3] 国家列=维度%d 类型列=%s"%(_ccol3,("维度%d"%_tcol3) if _tcol3 else "无(新版已删)"))
 for r in _x3[1:]:
-    if not r or not is2026(r[0]) or str(r[4]) not in _SKC: continue
-    w.append([str(r[0])[:10],r[1],r[2],r[3],r[4]]+[round(num(r[i]),2) for i in _idx3]); add+=1
+    if not r or not is2026(r[0]) or str(r[_ccol3]).strip() not in _SKC: continue
+    _ty=r[_tcol3] if _tcol3 is not None else "全部"
+    w.append([str(r[0])[:10],r[1],r[2],_ty,str(r[_ccol3]).strip()]+[round(num(r[i]),2) for i in _idx3]); add+=1
 out.save(f"{D}/SKU交叉表.xlsx"); print("SKU交叉表 (界<%s): 保留%d + 新增%d(仅13策略国)"%(cut,kept,add))
 
 # ---------- 4) 收入明细.xlsx (引流App=SEO监控明细口径; 合并历史) ----------
