@@ -575,6 +575,8 @@ function drawWeek(){
  const w=WR.weeks[+g('wk_sel').value||0]; if(!w){g('wk_body').innerHTML='<div class="card">暂无周报数据</div>';return;}
  let h='';
  if(w.summary&&w.summary.length) h+='<div class="card"><h3>本周摘要</h3><div class="concl">'+w.summary.map(s=>'• '+s).join('<br>')+'</div></div>';
+ // KPI 进度紧跟摘要(Q4 起每期必带)
+ if(w.kpi) h+='<div class="card" style="margin-top:12px;border-color:var(--accent)"><h3>'+(w.kpi.title||'KPI 完成进度')+'</h3><p class="cap">'+(w.kpi.note||'')+'</p>'+wtbl(w.kpi)+((w.kpi.concl&&w.kpi.concl.length)?'<div class="concl" style="margin-top:8px">'+w.kpi.concl.map(s=>'• '+s).join('<br>')+'</div>':'')+'</div>';
  if(w.dapan) h+='<div class="card" style="margin-top:12px"><h3>大盘数据回收</h3>'+wtbl(w.dapan)+'</div>';
  if(w.pay) h+='<div class="card" style="margin-top:12px"><h3>'+(w.pay.title||'支付成功率')+'</h3><p class="cap">'+(w.pay.note||'')+'</p>'+wtbl(w.pay)+((w.pay.concl&&w.pay.concl.length)?'<div class="concl" style="margin-top:8px">'+w.pay.concl.map(s=>'• '+s).join('<br>')+'</div>':'')+'</div>';
  if(w.phase2) h+='<div class="card" style="margin-top:12px"><h3>二期面板策略数据回收</h3><p class="cap">'+(w.phase2.note||'')+'</p>'+wtbl(w.phase2)+'</div>';
@@ -591,6 +593,7 @@ function copyWeekLark(){
  const ttbl=o=>{if(!o||!o.cols)return'';return o.cols.join('\t')+'\n'+o.rows.map(r=>r.join('\t')).join('\n')+'\n';};
  let H=`<h3>产运周报 · ${esc(w.date)}</h3>`, T=`产运周报 · ${w.date}\n\n`;
  if(w.summary&&w.summary.length){H+='<p><b>本周摘要</b></p><ul>'+w.summary.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>'; T+='【本周摘要】\n'+w.summary.map(s=>'• '+s).join('\n')+'\n\n';}
+ if(w.kpi){H+=`<p><b>${esc(w.kpi.title||'KPI 完成进度')}</b><br><i>${esc(w.kpi.note||'')}</i></p>`+htbl(w.kpi)+((w.kpi.concl&&w.kpi.concl.length)?'<ul>'+w.kpi.concl.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':''); T+='【'+(w.kpi.title||'KPI 完成进度')+'】\n'+(w.kpi.note||'')+'\n'+ttbl(w.kpi)+(w.kpi.concl?w.kpi.concl.map(s=>'• '+s).join('\n')+'\n':'')+'\n';}
  if(w.dapan){H+='<p><b>大盘数据回收</b></p>'+htbl(w.dapan); T+='【大盘数据回收】\n'+ttbl(w.dapan)+'\n';}
  if(w.pay){H+=`<p><b>${esc(w.pay.title||'支付成功率')}</b><br><i>${esc(w.pay.note||'')}</i></p>`+htbl(w.pay)+((w.pay.concl&&w.pay.concl.length)?'<ul>'+w.pay.concl.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':''); T+='【'+(w.pay.title||'支付成功率')+'】\n'+(w.pay.note||'')+'\n'+ttbl(w.pay)+(w.pay.concl?w.pay.concl.map(s=>'• '+s).join('\n')+'\n':'')+'\n';}
  if(w.phase2){H+=`<p><b>二期面板策略数据回收</b><br><i>${esc(w.phase2.note||'')}</i></p>`+htbl(w.phase2); T+='【二期面板策略数据回收】\n'+(w.phase2.note||'')+'\n'+ttbl(w.phase2)+'\n';}
