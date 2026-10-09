@@ -138,11 +138,16 @@ try:
 except Exception as e:
     print("  [warn] extras.json 生成失败:", e)
 
-# ---- 渠道分解另存一份,供分析用 ----
-ch = {}
+# ---- 渠道分解:跨导出累积(每份导出只含 2-3 天,不累积会只剩最后一次的) ----
+_cp = f"{D}/../channel_daily.json"
+ch = json.load(open(_cp)) if os.path.exists(_cp) else {}
+_n = 0
 for r in body:
     d = str(r[0])[:10]
     if d in bad: continue
-    ch.setdefault(d, {})[str(r[1]).strip()] = {"dau": num(r[I_DAU]), "rev": num(r[I_REV]), "uv": num(r[I_UV])}
-json.dump(ch, open(f"{D}/../channel_daily.json", "w"), ensure_ascii=False, indent=1)
-print("  channel_daily.json:%d 天渠道分解(SEO/fb/未知)" % len(ch))
+    ch.setdefault(d, {})[str(r[1]).strip()] = {
+        "dau": num(r[I_DAU]), "rev": num(r[I_REV]), "uv": num(r[I_UV]),
+        "view": num(r[I_VIEW]), "order": num(r[I_ORDER]), "sub": num(r[I_SUB]), "fo": num(r[I_FO])}
+    _n += 1
+json.dump(dict(sorted(ch.items())), open(_cp, "w"), ensure_ascii=False, indent=1)
+print("  channel_daily.json:本次写入 %d 行,累计 %d 天" % (_n, len(ch)))
