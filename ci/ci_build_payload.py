@@ -121,9 +121,12 @@ def sw(a,b):
     R=sum(rev[i] or 0 for i in ix); DA=sum(dau[i] or 0 for i in ix); UV=sum(chargeuv[i] or 0 for i in ix); n=len(ix) or 1
     return {"rev":R,"iap_day":R/n,"arpu":R/DA if DA else 0,"arppu":R/UV if UV else 0,"payrate":UV/DA*100 if DA else 0}
 iso=lambda x:x.isoformat()
-tmv=(iso(md.replace(day=1)),dates[-1]); lme=md.replace(day=1)-datetime.timedelta(days=1)
-lmv=(iso(lme.replace(day=1)),iso(lme.replace(day=min(md.day,lme.day))))
-wkv=(iso(md-datetime.timedelta(days=6)),dates[-1]); pwv=(iso(md-datetime.timedelta(days=13)),iso(md-datetime.timedelta(days=7)))
+# 大盘环比窗口必须锚定「大盘自己的最新日」。此前用的是 md(= 国家表 recs 的末日),
+# 9/30 BI 改版后国家表冻结在 9/26 而大盘已到 10/07,导致「本月至今」跨了两个月(9/01→10/07)。
+smd=datetime.date.fromisoformat(dates[-1])
+tmv=(iso(smd.replace(day=1)),dates[-1]); lme=smd.replace(day=1)-datetime.timedelta(days=1)
+lmv=(iso(lme.replace(day=1)),iso(lme.replace(day=min(smd.day,lme.day))))
+wkv=(iso(smd-datetime.timedelta(days=6)),dates[-1]); pwv=(iso(smd-datetime.timedelta(days=13)),iso(smd-datetime.timedelta(days=7)))
 TM,LM,Wk,PW=sw(*tmv),sw(*lmv),sw(*wkv),sw(*pwv)
 pct=lambda c,p: round((c-p)/p*100,1) if p else None
 dash_metrics=[{"key":k,"label":l,"fmt":f,"cur":round(TM[k],4),"mom":pct(TM[k],LM[k]),"wow":pct(Wk[k],PW[k])}
