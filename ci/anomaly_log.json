@@ -1,0 +1,1005 @@
+{
+ "_confirmed_bad": [
+  "2026-10-07",
+  "2026-10-08"
+ ],
+ "2026-10-01": {
+  "date": "2026-10-01",
+  "base_window": "2026-09-15~2026-09-30",
+  "day_rev": 14216.25,
+  "n": 0,
+  "anom_rev": 0,
+  "hits": []
+ },
+ "2026-10-02": {
+  "date": "2026-10-02",
+  "base_window": "2026-09-16~2026-10-01",
+  "day_rev": 17559.97,
+  "n": 0,
+  "anom_rev": 0,
+  "hits": []
+ },
+ "2026-10-03": {
+  "date": "2026-10-03",
+  "base_window": "2026-09-17~2026-10-02",
+  "day_rev": 16675.53,
+  "n": 0,
+  "anom_rev": 0,
+  "hits": []
+ },
+ "2026-10-04": {
+  "date": "2026-10-04",
+  "base_window": "2026-09-18~2026-10-03",
+  "day_rev": 16966.3,
+  "n": 5,
+  "anom_rev": 1307.93,
+  "hits": [
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "哥斯达黎加",
+    "price": "599",
+    "rev": 293.51,
+    "uv": 49,
+    "base_rev": 10.36,
+    "base_uv": 1.0,
+    "mult": 28.3,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "罗马尼亚",
+    "price": "599",
+    "rev": 325.48,
+    "uv": 52,
+    "base_rev": 46.82,
+    "base_uv": 5.2,
+    "mult": 7.0,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "波多黎各",
+    "price": "599",
+    "rev": 275.54,
+    "uv": 46,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "奥地利",
+    "price": "599",
+    "rev": 257.57,
+    "uv": 43,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "波兰",
+    "price": "599",
+    "rev": 227.62,
+    "uv": 38,
+    "base_rev": 14.61,
+    "base_uv": 1.1,
+    "mult": 15.6,
+    "kind": "放大"
+   }
+  ]
+ },
+ "2026-10-05": {
+  "date": "2026-10-05",
+  "base_window": "2026-09-19~2026-10-04",
+  "day_rev": 15393.05,
+  "n": 1,
+  "anom_rev": 1717.27,
+  "hits": [
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "美国",
+    "price": "599",
+    "rev": 1725.12,
+    "uv": 288,
+    "base_rev": 7.85,
+    "base_uv": 1.1,
+    "mult": 219.6,
+    "kind": "放大"
+   }
+  ]
+ },
+ "2026-10-06": {
+  "date": "2026-10-06",
+  "base_window": "2026-09-20~2026-10-05",
+  "day_rev": 16064.91,
+  "n": 5,
+  "anom_rev": 1265.4,
+  "hits": [
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "荷兰",
+    "price": "599",
+    "rev": 401.33,
+    "uv": 67,
+    "base_rev": 9.73,
+    "base_uv": 1.6,
+    "mult": 41.2,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "瑞典",
+    "price": "599",
+    "rev": 293.51,
+    "uv": 49,
+    "base_rev": 16.85,
+    "base_uv": 2.8,
+    "mult": 17.4,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "法国",
+    "price": "599",
+    "rev": 239.6,
+    "uv": 40,
+    "base_rev": 15.35,
+    "base_uv": 2.6,
+    "mult": 15.6,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "波兰",
+    "price": "599",
+    "rev": 217.66,
+    "uv": 34,
+    "base_rev": 29.46,
+    "base_uv": 3.8,
+    "mult": 7.4,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "西班牙",
+    "price": "599",
+    "rev": 203.66,
+    "uv": 34,
+    "base_rev": 18.97,
+    "base_uv": 2.9,
+    "mult": 10.7,
+    "kind": "放大"
+   }
+  ]
+ },
+ "2026-10-07": {
+  "date": "2026-10-07",
+  "base_window": "2026-09-21~2026-10-06",
+  "day_rev": 22025.01,
+  "n": 14,
+  "anom_rev": 5819.81,
+  "hits": [
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "俄罗斯联邦",
+    "price": "599",
+    "rev": 1169.06,
+    "uv": 194,
+    "base_rev": 1.12,
+    "base_uv": 0.2,
+    "mult": 1040.9,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "西班牙",
+    "price": "599",
+    "rev": 755.75,
+    "uv": 125,
+    "base_rev": 31.7,
+    "base_uv": 5.0,
+    "mult": 23.8,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "德国",
+    "price": "599",
+    "rev": 515.14,
+    "uv": 86,
+    "base_rev": 17.6,
+    "base_uv": 2.9,
+    "mult": 29.3,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "英国",
+    "price": "599",
+    "rev": 485.19,
+    "uv": 81,
+    "base_rev": 15.35,
+    "base_uv": 2.6,
+    "mult": 31.6,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "以色列",
+    "price": "599",
+    "rev": 449.25,
+    "uv": 75,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "希腊",
+    "price": "599",
+    "rev": 383.36,
+    "uv": 64,
+    "base_rev": 17.72,
+    "base_uv": 2.8,
+    "mult": 21.6,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "塞舌尔",
+    "price": "599",
+    "rev": 365.39,
+    "uv": 61,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "波兰",
+    "price": "599",
+    "rev": 408.33,
+    "uv": 67,
+    "base_rev": 43.07,
+    "base_uv": 5.9,
+    "mult": 9.5,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "法国",
+    "price": "599",
+    "rev": 329.45,
+    "uv": 55,
+    "base_rev": 30.32,
+    "base_uv": 5.1,
+    "mult": 10.9,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "荷兰",
+    "price": "599",
+    "rev": 299.5,
+    "uv": 50,
+    "base_rev": 34.82,
+    "base_uv": 5.8,
+    "mult": 8.6,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "立陶宛",
+    "price": "599",
+    "rev": 257.57,
+    "uv": 43,
+    "base_rev": 11.61,
+    "base_uv": 1.9,
+    "mult": 22.2,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "意大利",
+    "price": "599",
+    "rev": 246.6,
+    "uv": 40,
+    "base_rev": 24.46,
+    "base_uv": 3.9,
+    "mult": 10.1,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "瑞典",
+    "price": "599",
+    "rev": 227.62,
+    "uv": 38,
+    "base_rev": 35.19,
+    "base_uv": 5.9,
+    "mult": 6.5,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "澳大利亚",
+    "price": "599",
+    "rev": 203.66,
+    "uv": 34,
+    "base_rev": 13.1,
+    "base_uv": 2.2,
+    "mult": 15.5,
+    "kind": "放大"
+   }
+  ]
+ },
+ "2026-10-08": {
+  "date": "2026-10-08",
+  "base_window": "2026-09-21~2026-10-06",
+  "day_rev": 36178.1,
+  "n": 23,
+  "anom_rev": 14646.71,
+  "hits": [
+   {
+    "sku": "adyen标准月卡19.99",
+    "country": "哥斯达黎加",
+    "price": "1999",
+    "rev": 1259.37,
+    "uv": 63,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "意大利",
+    "price": "4999",
+    "rev": 1199.76,
+    "uv": 24,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "希腊",
+    "price": "4999",
+    "rev": 1149.77,
+    "uv": 23,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准月卡19.99",
+    "country": "英国",
+    "price": "1999",
+    "rev": 1119.44,
+    "uv": 56,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "西班牙",
+    "price": "4999",
+    "rev": 1049.79,
+    "uv": 21,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "法国",
+    "price": "4999",
+    "rev": 849.83,
+    "uv": 17,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准月卡19.99",
+    "country": "法国",
+    "price": "1999",
+    "rev": 839.58,
+    "uv": 42,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准月卡19.99",
+    "country": "德国",
+    "price": "1999",
+    "rev": 659.67,
+    "uv": 33,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "奥地利",
+    "price": "4999",
+    "rev": 649.87,
+    "uv": 13,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准月卡19.99",
+    "country": "西班牙",
+    "price": "1999",
+    "rev": 639.68,
+    "uv": 32,
+    "base_rev": 3.75,
+    "base_uv": 0.2,
+    "mult": 170.7,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准月卡19.99",
+    "country": "荷兰",
+    "price": "1999",
+    "rev": 599.7,
+    "uv": 30,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "德国",
+    "price": "4999",
+    "rev": 549.89,
+    "uv": 11,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准年卡99.99",
+    "country": "菲律宾",
+    "price": "9999",
+    "rev": 599.94,
+    "uv": 6,
+    "base_rev": 99.99,
+    "base_uv": 1.0,
+    "mult": 6.0,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "瑞典",
+    "price": "4999",
+    "rev": 499.9,
+    "uv": 10,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准月卡19.99",
+    "country": "意大利",
+    "price": "1999",
+    "rev": 459.77,
+    "uv": 23,
+    "base_rev": 12.49,
+    "base_uv": 0.6,
+    "mult": 36.8,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "波兰",
+    "price": "4999",
+    "rev": 449.91,
+    "uv": 9,
+    "base_rev": 3.12,
+    "base_uv": 0.1,
+    "mult": 144.0,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "哥斯达黎加",
+    "price": "4999",
+    "rev": 399.92,
+    "uv": 8,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "秘鲁",
+    "price": "4999",
+    "rev": 399.92,
+    "uv": 8,
+    "base_rev": 6.25,
+    "base_uv": 0.1,
+    "mult": 64.0,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "拉脱维亚",
+    "price": "4999",
+    "rev": 349.93,
+    "uv": 7,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "荷兰",
+    "price": "4999",
+    "rev": 299.94,
+    "uv": 6,
+    "base_rev": 3.12,
+    "base_uv": 0.1,
+    "mult": 96.0,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "克罗地亚",
+    "price": "4999",
+    "rev": 249.95,
+    "uv": 5,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "斯洛伐克",
+    "price": "4999",
+    "rev": 249.95,
+    "uv": 5,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "阿尔巴尼亚",
+    "price": "4999",
+    "rev": 249.95,
+    "uv": 5,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   }
+  ]
+ },
+ "2026-09-15": {
+  "date": "2026-09-15",
+  "base_window": "2026-08-30~2026-09-14",
+  "day_rev": 13106.42,
+  "n": 2,
+  "anom_rev": 3480.64,
+  "hits": [
+   {
+    "sku": "adyen标准年卡99.99",
+    "country": "菲律宾",
+    "price": "9999",
+    "rev": 2999.7,
+    "uv": 30,
+    "base_rev": 174.98,
+    "base_uv": 1.8,
+    "mult": 17.1,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准月卡19.99",
+    "country": "菲律宾",
+    "price": "1999",
+    "rev": 699.65,
+    "uv": 35,
+    "base_rev": 43.73,
+    "base_uv": 2.2,
+    "mult": 16.0,
+    "kind": "放大"
+   }
+  ]
+ },
+ "2026-09-16": {
+  "date": "2026-09-16",
+  "base_window": "2026-08-31~2026-09-15",
+  "day_rev": 16345.12,
+  "n": 2,
+  "anom_rev": 4774.53,
+  "hits": [
+   {
+    "sku": "adyen标准年卡99.99",
+    "country": "菲律宾",
+    "price": "9999",
+    "rev": 4199.58,
+    "uv": 42,
+    "base_rev": 362.46,
+    "base_uv": 3.6,
+    "mult": 11.6,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen普通商品99.99",
+    "country": "菲律宾",
+    "price": "9999",
+    "rev": 999.9,
+    "uv": 2,
+    "base_rev": 62.49,
+    "base_uv": 0.4,
+    "mult": 16.0,
+    "kind": "放大"
+   }
+  ]
+ },
+ "2026-09-17": {
+  "date": "2026-09-17",
+  "base_window": "2026-09-01~2026-09-16",
+  "day_rev": 20306.12,
+  "n": 3,
+  "anom_rev": 3750.43,
+  "hits": [
+   {
+    "sku": "adyen标准年卡99.99",
+    "country": "菲律宾",
+    "price": "9999",
+    "rev": 3899.61,
+    "uv": 39,
+    "base_rev": 624.94,
+    "base_uv": 6.2,
+    "mult": 6.2,
+    "kind": "放大"
+   },
+   {
+    "sku": "10000Coins",
+    "country": "美国",
+    "price": "9999",
+    "rev": 299.97,
+    "uv": 1,
+    "base_rev": 12.5,
+    "base_uv": 0.1,
+    "mult": 24.0,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "乌克兰",
+    "price": "599",
+    "rev": 225.74,
+    "uv": 26,
+    "base_rev": 37.45,
+    "base_uv": 5.4,
+    "mult": 6.0,
+    "kind": "放大"
+   }
+  ]
+ },
+ "2026-09-18": {
+  "date": "2026-09-18",
+  "base_window": "2026-09-02~2026-09-17",
+  "day_rev": 23177.8,
+  "n": 2,
+  "anom_rev": 5815.16,
+  "hits": [
+   {
+    "sku": "adyen标准年卡99.99",
+    "country": "菲律宾",
+    "price": "9999",
+    "rev": 6399.36,
+    "uv": 64,
+    "base_rev": 868.66,
+    "base_uv": 8.7,
+    "mult": 7.4,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡24.99",
+    "country": "美国",
+    "price": "2499",
+    "rev": 349.86,
+    "uv": 14,
+    "base_rev": 65.4,
+    "base_uv": 2.6,
+    "mult": 5.3,
+    "kind": "放大"
+   }
+  ]
+ },
+ "2026-09-19": {
+  "date": "2026-09-19",
+  "base_window": "2026-09-03~2026-09-18",
+  "day_rev": 17807.61,
+  "n": 0,
+  "anom_rev": 0,
+  "hits": []
+ },
+ "2026-09-20": {
+  "date": "2026-09-20",
+  "base_window": "2026-09-04~2026-09-19",
+  "day_rev": 12491.96,
+  "n": 1,
+  "anom_rev": 387.48,
+  "hits": [
+   {
+    "sku": "199.99年卡",
+    "country": "美国",
+    "price": "19999",
+    "rev": 399.98,
+    "uv": 2,
+    "base_rev": 12.5,
+    "base_uv": 0.1,
+    "mult": 32.0,
+    "kind": "放大"
+   }
+  ]
+ },
+ "2026-09-21": {
+  "date": "2026-09-21",
+  "base_window": "2026-09-05~2026-09-20",
+  "day_rev": 10710.54,
+  "n": 0,
+  "anom_rev": 0,
+  "hits": []
+ },
+ "2026-09-22": {
+  "date": "2026-09-22",
+  "base_window": "2026-09-06~2026-09-21",
+  "day_rev": 10936.35,
+  "n": 0,
+  "anom_rev": 0,
+  "hits": []
+ },
+ "2026-09-23": {
+  "date": "2026-09-23",
+  "base_window": "2026-09-07~2026-09-22",
+  "day_rev": 13178.22,
+  "n": 1,
+  "anom_rev": 197.45,
+  "hits": [
+   {
+    "sku": "39.99月卡",
+    "country": "美国",
+    "price": "3999",
+    "rev": 239.94,
+    "uv": 6,
+    "base_rev": 42.49,
+    "base_uv": 1.1,
+    "mult": 5.6,
+    "kind": "放大"
+   }
+  ]
+ },
+ "2026-09-24": {
+  "date": "2026-09-24",
+  "base_window": "2026-09-08~2026-09-23",
+  "day_rev": 15397.47,
+  "n": 0,
+  "anom_rev": 0,
+  "hits": []
+ },
+ "2026-09-25": {
+  "date": "2026-09-25",
+  "base_window": "2026-09-09~2026-09-24",
+  "day_rev": 19637.3,
+  "n": 2,
+  "anom_rev": 1099.83,
+  "hits": [
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "墨西哥",
+    "price": "4999",
+    "rev": 799.84,
+    "uv": 4,
+    "base_rev": 37.49,
+    "base_uv": 0.2,
+    "mult": 21.3,
+    "kind": "放大"
+   },
+   {
+    "sku": "199.99年卡",
+    "country": "美国",
+    "price": "19999",
+    "rev": 399.98,
+    "uv": 2,
+    "base_rev": 62.5,
+    "base_uv": 0.3,
+    "mult": 6.4,
+    "kind": "放大"
+   }
+  ]
+ },
+ "2026-09-26": {
+  "date": "2026-09-26",
+  "base_window": "2026-09-10~2026-09-25",
+  "day_rev": 16926.9,
+  "n": 0,
+  "anom_rev": 0,
+  "hits": []
+ },
+ "2026-09-27": {
+  "date": "2026-09-27",
+  "base_window": "2026-09-11~2026-09-26",
+  "day_rev": 16286.42,
+  "n": 4,
+  "anom_rev": 1904.07,
+  "hits": [
+   {
+    "sku": "adyen APP普通商品2.99",
+    "country": "印度",
+    "price": "299",
+    "rev": 816.27,
+    "uv": 273,
+    "base_rev": 2.24,
+    "base_uv": 0.4,
+    "mult": 364.0,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen APP普通商品2.99",
+    "country": "越南",
+    "price": "299",
+    "rev": 520.26,
+    "uv": 174,
+    "base_rev": 2.43,
+    "base_uv": 0.8,
+    "mult": 214.2,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen APP普通商品2.99",
+    "country": "印度尼西亚",
+    "price": "299",
+    "rev": 358.8,
+    "uv": 120,
+    "base_rev": 1.5,
+    "base_uv": 0.5,
+    "mult": 240.0,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen APP普通商品2.99",
+    "country": "泰国",
+    "price": "299",
+    "rev": 215.28,
+    "uv": 72,
+    "base_rev": 0.37,
+    "base_uv": 0.1,
+    "mult": 576.0,
+    "kind": "放大"
+   }
+  ]
+ },
+ "2026-09-28": {
+  "date": "2026-09-28",
+  "base_window": "2026-09-12~2026-09-27",
+  "day_rev": 12822.03,
+  "n": 4,
+  "anom_rev": 1394.09,
+  "hits": [
+   {
+    "sku": "adyen APP普通商品2.99",
+    "country": "印度",
+    "price": "299",
+    "rev": 589.03,
+    "uv": 197,
+    "base_rev": 53.26,
+    "base_uv": 17.4,
+    "mult": 11.1,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen APP普通商品2.99",
+    "country": "新加坡",
+    "price": "299",
+    "rev": 418.6,
+    "uv": 140,
+    "base_rev": 0.93,
+    "base_uv": 0.3,
+    "mult": 448.0,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen APP普通商品2.99",
+    "country": "越南",
+    "price": "299",
+    "rev": 284.05,
+    "uv": 95,
+    "base_rev": 34.95,
+    "base_uv": 11.7,
+    "mult": 8.1,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen APP普通商品2.99",
+    "country": "印度尼西亚",
+    "price": "299",
+    "rev": 215.28,
+    "uv": 72,
+    "base_rev": 23.73,
+    "base_uv": 7.9,
+    "mult": 9.1,
+    "kind": "放大"
+   }
+  ]
+ },
+ "2026-09-29": {
+  "date": "2026-09-29",
+  "base_window": "2026-09-13~2026-09-28",
+  "day_rev": 11025.08,
+  "n": 3,
+  "anom_rev": 2399.19,
+  "hits": [
+   {
+    "sku": "adyen APP普通商品2.99",
+    "country": "others",
+    "price": "299",
+    "rev": 1937.52,
+    "uv": 646,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "原价21.99周卡，首周6.99",
+    "country": "others",
+    "price": "1299",
+    "rev": 246.81,
+    "uv": 19,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准周卡19.99",
+    "country": "others",
+    "price": "999",
+    "rev": 214.86,
+    "uv": 14,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   }
+  ]
+ },
+ "2026-09-30": {
+  "date": "2026-09-30",
+  "base_window": "2026-09-14~2026-09-29",
+  "day_rev": 13180.78,
+  "n": 0,
+  "anom_rev": 0,
+  "hits": []
+ }
+}
