@@ -368,6 +368,12 @@
  "2026-10-07": {
   "fail_rate": 7.35,
   "cancel_rate": 70.48,
+  "ret1": 11.77,
+  "renew1": null
+ },
+ "2026-10-08": {
+  "fail_rate": 5.95,
+  "cancel_rate": 72.41,
   "ret1": null,
   "renew1": null
  }
