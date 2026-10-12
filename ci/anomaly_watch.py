@@ -77,7 +77,13 @@ def load_all():
         for r in read(p): by[r["d"]].append(r)
         for d, rs in by.items():
             pool[d].append((len({x["country"] for x in rs}) > 1, len({x["type"] for x in rs}) > 1, ed, rs))
-    return {d: sorted(v)[-1][3] for d, v in pool.items()}
+    out = {d: sorted(v)[-1][3] for d, v in pool.items()}
+    # 剔除残缺日:当日数据未跑完时 SKU 表把全部成交塞进 others 桶(国家维度未归因),
+    # 不剔除会把整天误报为异常(10/11 曾因此误报 12 个单元格、82% 收入)。判据:有效国家数 ≤ 2。
+    bad = [d for d, rs in out.items() if len({x["country"] for x in rs} - {"others", "ALL", ""}) <= 2]
+    for d in bad: out.pop(d)
+    if bad: print("[info] 跳过残缺日(国家维度未归因): %s" % ", ".join(sorted(bad)))
+    return out
 
 def scan(SRC, target, known_bad):
     days = sorted(SRC)
