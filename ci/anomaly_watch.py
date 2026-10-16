@@ -25,6 +25,13 @@ BASE_DAYS  = 16      # 基线窗口
 MULT       = 5.0     # 相对基线倍数阈值
 MIN_REV    = 200.0   # 单元格当日收入下限($),低于此不报(避免噪音)
 MIN_UV_NEW = 5       # 基线为 0 时的订单数下限
+# 订单数维度(2026-10-16 加):低单价档位放量时金额未必超阈值,但订单数会暴涨。
+# 10/13-10/15 的 $5.99 周卡 951-1078 单/日(常态 27-44),金额仅 $4-6k 却覆盖近百国。
+MIN_UV     = 30      # 订单数触发的最低单数
+UV_MULT    = 8.0     # 订单数相对基线的倍数阈值(比金额阈值更严,避免小基数噪音)
+# 档位级(跨国家汇总)规则:单档位当日总订单数相对基线放大
+SKU_MIN_UV = 200
+SKU_MULT   = 5.0
 TYPES = ("0-", "1-", "2-")
 
 def num(v):
@@ -101,21 +108,40 @@ def scan(SRC, target, known_bad):
     hits = []
     for k, (rev, uv, price) in cur.items():
         b_rev, b_uv = base.get(k, [0.0, 0.0])
-        if rev < MIN_REV: continue
-        if b_rev == 0:
-            if uv >= MIN_UV_NEW:
-                hits.append({"sku": k[0], "country": k[1], "price": price, "rev": round(rev, 2),
-                             "uv": int(uv), "base_rev": 0.0, "base_uv": 0.0, "mult": None, "kind": "新增"})
-        elif rev / b_rev >= MULT:
-            hits.append({"sku": k[0], "country": k[1], "price": price, "rev": round(rev, 2),
-                         "uv": int(uv), "base_rev": round(b_rev, 2), "base_uv": round(b_uv, 1),
-                         "mult": round(rev / b_rev, 1), "kind": "放大"})
+        rec = {"sku": k[0], "country": k[1], "price": price, "rev": round(rev, 2), "uv": int(uv),
+               "base_rev": round(b_rev, 2), "base_uv": round(b_uv, 1)}
+        # 金额维度
+        if rev >= MIN_REV:
+            if b_rev == 0 and uv >= MIN_UV_NEW:
+                hits.append(dict(rec, mult=None, kind="新增")); continue
+            if b_rev > 0 and rev / b_rev >= MULT:
+                hits.append(dict(rec, mult=round(rev / b_rev, 1), kind="放大")); continue
+        # 订单数维度:低单价档位放量时金额可能不过阈值,但单数会暴涨
+        if uv >= MIN_UV and b_uv > 0 and uv / b_uv >= UV_MULT:
+            hits.append(dict(rec, mult=round(rev / b_rev, 1) if b_rev else None,
+                             uv_mult=round(uv / b_uv, 1), kind="单数放大"))
     hits.sort(key=lambda h: -(h["rev"] - h["base_rev"]))
+    # 档位级(跨国家汇总):整体放量但分摊到各国都不过阈值的情况
+    sb = collections.defaultdict(lambda: [0.0, 0.0])
+    for d in base_days:
+        for x in SRC[d]:
+            sb[x["sku"]][0] += x["rev"] / len(base_days); sb[x["sku"]][1] += x["uv"] / len(base_days)
+    sc = collections.defaultdict(lambda: [0.0, 0.0, set()])
+    for x in SRC[target]:
+        sc[x["sku"]][0] += x["rev"]; sc[x["sku"]][1] += x["uv"]; sc[x["sku"]][2].add(x["country"])
+    sku_hits = []
+    for s_, (rev, uv, ctys) in sc.items():
+        b_rev, b_uv = sb.get(s_, [0.0, 0.0])
+        if uv >= SKU_MIN_UV and b_uv > 0 and uv / b_uv >= SKU_MULT:
+            sku_hits.append({"sku": s_, "uv": int(uv), "rev": round(rev, 2),
+                             "base_uv": round(b_uv, 1), "base_rev": round(b_rev, 2),
+                             "uv_mult": round(uv / b_uv, 1), "countries": len(ctys)})
+    sku_hits.sort(key=lambda h: -h["uv_mult"])
     day_rev = sum(x["rev"] for x in SRC[target])
     return {"date": target, "base_window": "%s~%s" % (base_days[0], base_days[-1]),
             "day_rev": round(day_rev, 2), "n": len(hits),
             "anom_rev": round(sum(h["rev"] - h["base_rev"] for h in hits), 2),
-            "hits": hits}
+            "hits": hits, "sku_hits": sku_hits}
 
 def main():
     SRC = load_all()
@@ -144,6 +170,10 @@ def main():
             print("   %-24s %-12s 价%-6s %5d单 $%9.2f  基线 %.1f单/$%.2f  %s" % (
                 h["sku"][:24], h["country"][:12], h["price"], h["uv"], h["rev"], h["base_uv"], h["base_rev"], m))
         if r["n"] > 15: print("   ...另有 %d 个" % (r["n"] - 15))
+        for sh in r.get("sku_hits", []):
+            print("   [档位级] %-22s %5d单 $%9.2f  基线 %.1f单/$%.2f  单数 %.1fx  %d国" % (
+                sh["sku"][:22], sh["uv"], sh["rev"], sh["base_uv"], sh["base_rev"],
+                sh["uv_mult"], sh["countries"]))
     log.setdefault("_confirmed_bad", sorted(known_bad))
     for r in out: log[r["date"]] = r
     json.dump(log, open(LOG, "w"), ensure_ascii=False, indent=1)
