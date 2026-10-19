@@ -1901,5 +1901,341 @@
     "countries": 94
    }
   ]
+ },
+ "2026-10-17": {
+  "date": "2026-10-17",
+  "base_window": "2026-09-10~2026-10-16",
+  "day_rev": 21527.29,
+  "n": 1,
+  "anom_rev": 198.68,
+  "hits": [
+   {
+    "sku": "adyen标准周卡29.99",
+    "country": "英国",
+    "price": "2999",
+    "rev": 239.92,
+    "uv": 8,
+    "base_rev": 41.24,
+    "base_uv": 1.4,
+    "mult": 5.8,
+    "kind": "放大"
+   }
+  ],
+  "sku_hits": []
+ },
+ "2026-10-15": {
+  "date": "2026-10-15",
+  "base_window": "2026-09-08~2026-10-03",
+  "day_rev": 24111.08,
+  "n": 15,
+  "anom_rev": 5171.91,
+  "hits": [
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "巴西",
+    "price": "599",
+    "rev": 1029.48,
+    "uv": 152,
+    "base_rev": 32.48,
+    "base_uv": 2.5,
+    "mult": 31.7,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "美国",
+    "price": "599",
+    "rev": 611.16,
+    "uv": 80,
+    "base_rev": 2.99,
+    "base_uv": 0.2,
+    "mult": 204.6,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "西班牙",
+    "price": "599",
+    "rev": 558.22,
+    "uv": 78,
+    "base_rev": 3.25,
+    "base_uv": 0.2,
+    "mult": 171.9,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "法国",
+    "price": "599",
+    "rev": 357.52,
+    "uv": 48,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "英国",
+    "price": "599",
+    "rev": 318.55,
+    "uv": 45,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "阿根廷",
+    "price": "599",
+    "rev": 298.56,
+    "uv": 44,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "俄罗斯联邦",
+    "price": "599",
+    "rev": 286.58,
+    "uv": 42,
+    "base_rev": 1.12,
+    "base_uv": 0.2,
+    "mult": 255.2,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "厄瓜多尔",
+    "price": "599",
+    "rev": 275.61,
+    "uv": 39,
+    "base_rev": 2.31,
+    "base_uv": 0.3,
+    "mult": 119.3,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "加拿大",
+    "price": "599",
+    "rev": 272.58,
+    "uv": 42,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "意大利",
+    "price": "599",
+    "rev": 214.7,
+    "uv": 30,
+    "base_rev": 1.62,
+    "base_uv": 0.1,
+    "mult": 132.2,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "德国",
+    "price": "599",
+    "rev": 212.75,
+    "uv": 25,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "哥伦比亚",
+    "price": "599",
+    "rev": 230.65,
+    "uv": 35,
+    "base_rev": 26.29,
+    "base_uv": 2.6,
+    "mult": 8.8,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "墨西哥",
+    "price": "599",
+    "rev": 208.71,
+    "uv": 29,
+    "base_rev": 13.8,
+    "base_uv": 1.1,
+    "mult": 15.1,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "越南",
+    "price": "599",
+    "rev": 213.69,
+    "uv": 31,
+    "base_rev": 20.17,
+    "base_uv": 2.1,
+    "mult": 10.6,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "秘鲁",
+    "price": "599",
+    "rev": 209.72,
+    "uv": 28,
+    "base_rev": 22.54,
+    "base_uv": 1.9,
+    "mult": 9.3,
+    "kind": "放大"
+   }
+  ],
+  "sku_hits": [
+   {
+    "sku": "adyen标准周卡12.99",
+    "uv": 1233,
+    "rev": 9183.63,
+    "base_uv": 78.7,
+    "base_rev": 731.83,
+    "uv_mult": 15.7,
+    "countries": 108
+   }
+  ]
+ },
+ "2026-10-16": {
+  "date": "2026-10-16",
+  "base_window": "2026-09-09~2026-10-15",
+  "day_rev": 26948.84,
+  "n": 10,
+  "anom_rev": 3844.34,
+  "hits": [
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "美国",
+    "price": "599",
+    "rev": 866.92,
+    "uv": 104,
+    "base_rev": 41.19,
+    "base_uv": 5.2,
+    "mult": 21.0,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "巴西",
+    "price": "599",
+    "rev": 643.3,
+    "uv": 70,
+    "base_rev": 95.19,
+    "base_uv": 11.9,
+    "mult": 6.8,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "俄罗斯联邦",
+    "price": "599",
+    "rev": 471.26,
+    "uv": 74,
+    "base_rev": 19.03,
+    "base_uv": 2.8,
+    "mult": 24.8,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "俄罗斯联邦",
+    "price": "4999",
+    "rev": 449.91,
+    "uv": 9,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "英国",
+    "price": "599",
+    "rev": 350.52,
+    "uv": 48,
+    "base_rev": 19.91,
+    "base_uv": 2.8,
+    "mult": 17.6,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "法国",
+    "price": "599",
+    "rev": 331.61,
+    "uv": 39,
+    "base_rev": 22.34,
+    "base_uv": 3.0,
+    "mult": 14.8,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "美国",
+    "price": "4999",
+    "rev": 299.94,
+    "uv": 6,
+    "base_rev": 25.0,
+    "base_uv": 0.5,
+    "mult": 12.0,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen普通商品49.99",
+    "country": "以色列",
+    "price": "4999",
+    "rev": 249.95,
+    "uv": 5,
+    "base_rev": 0.0,
+    "base_uv": 0.0,
+    "mult": null,
+    "kind": "新增"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "西班牙",
+    "price": "599",
+    "rev": 262.69,
+    "uv": 31,
+    "base_rev": 37.32,
+    "base_uv": 5.1,
+    "mult": 7.0,
+    "kind": "放大"
+   },
+   {
+    "sku": "adyen标准周卡12.99",
+    "country": "越南",
+    "price": "599",
+    "rev": 211.74,
+    "uv": 26,
+    "base_rev": 33.52,
+    "base_uv": 4.1,
+    "mult": 6.3,
+    "kind": "放大"
+   }
+  ],
+  "sku_hits": [
+   {
+    "sku": "adyen标准周卡12.99",
+    "uv": 860,
+    "rev": 7313.36,
+    "base_uv": 151.1,
+    "base_rev": 1268.54,
+    "uv_mult": 5.7,
+    "countries": 104
+   }
+  ]
  }
 }
