@@ -32,6 +32,10 @@ UV_MULT    = 8.0     # 订单数相对基线的倍数阈值(比金额阈值更�
 # 档位级(跨国家汇总)规则:单档位当日总订单数相对基线放大
 SKU_MIN_UV = 200
 SKU_MULT   = 5.0
+# 标红门槛:新增(首订)异常达到此金额或单元格数才算「新攻击」,否则只标黄。
+# 10/19 新增仅 $331(1.3%)而续订回声 $4,489,旧版一律标红会造成告警疲劳。
+NEW_ALERT_REV = 800.0
+NEW_ALERT_N   = 3
 TYPES = ("0-", "1-", "2-")
 
 def num(v):
@@ -65,14 +69,32 @@ def read(path):
     if not rows: return []
     ndim = min(5, next((i for i, x in enumerate(H) if x == "充值pv"), 5) - 1)
     si, pi, ci, ti = sniff(rows, ndim)
+    has_stage = all(c in I for c in ("首订uv", "续订uv", "首订收入", "续订收入"))
     out = []
     for r in rows:
-        out.append({"d": str(r[0])[:10],
-                    "sku": str(r[si]).strip() if si else "",
-                    "price": str(r[pi]).strip() if pi else "",
-                    "country": str(r[ci]).strip() if ci else "ALL",
-                    "type": str(r[ti]).strip() if ti else "全部",
-                    "rev": num(r[I["总收入"]]), "uv": num(r[I["充值uv"]]) if "充值uv" in I else 0.0})
+        meta = {"d": str(r[0])[:10],
+                "sku": str(r[si]).strip() if si else "",
+                "price": str(r[pi]).strip() if pi else "",
+                "country": str(r[ci]).strip() if ci else "ALL",
+                "type": str(r[ti]).strip() if ti else "全部"}
+        tot = num(r[I["总收入"]]); uv = num(r[I["充值uv"]]) if "充值uv" in I else 0.0
+        # 首订/续订拆分(2026-10-23 加):同一档位的 599 首周价与 1299 续订价是同一个 sku,
+        # 混在一起算基线会让「续订回声」被误报成新攻击 —— 10/19 的 $12.99 1154 单就是
+        # 10/12-10/13 那批 $5.99 的续订,不是新发生的盗刷。两者风险含义完全不同:
+        # 首订异常 = 新攻击,要立即封堵;续订异常 = 存量订阅在扣款,看衰减趋势即可。
+        if has_stage:
+            fo_uv, re_uv = num(r[I["首订uv"]]), num(r[I["续订uv"]])
+            fo_rev, re_rev = num(r[I["首订收入"]]), num(r[I["续订收入"]])
+            if fo_uv or fo_rev:
+                out.append(dict(meta, stage="首订", rev=fo_rev, uv=fo_uv))
+            if re_uv or re_rev:
+                out.append(dict(meta, stage="续订", rev=re_rev, uv=re_uv))
+            # 非订阅部分(金币/一次性商品):总收入扣掉订阅后的余额
+            oth_rev = tot - fo_rev - re_rev; oth_uv = uv - fo_uv - re_uv
+            if oth_rev > 0.01 or oth_uv > 0.5:
+                out.append(dict(meta, stage="非订阅", rev=oth_rev, uv=oth_uv))
+        else:
+            out.append(dict(meta, stage="全部", rev=tot, uv=uv))
     return out
 
 def load_all():
@@ -100,15 +122,17 @@ def scan(SRC, target, known_bad):
     base = collections.defaultdict(lambda: [0.0, 0.0])
     for d in base_days:
         for x in SRC[d]:
-            k = (x["sku"], x["country"])
+            k = (x["sku"], x["country"], x.get("stage", "全部"))
             base[k][0] += x["rev"] / len(base_days); base[k][1] += x["uv"] / len(base_days)
     cur = collections.defaultdict(lambda: [0.0, 0.0, ""])
     for x in SRC[target]:
-        k = (x["sku"], x["country"]); cur[k][0] += x["rev"]; cur[k][1] += x["uv"]; cur[k][2] = x["price"]
+        k = (x["sku"], x["country"], x.get("stage", "全部"))
+        cur[k][0] += x["rev"]; cur[k][1] += x["uv"]; cur[k][2] = x["price"]
     hits = []
     for k, (rev, uv, price) in cur.items():
         b_rev, b_uv = base.get(k, [0.0, 0.0])
-        rec = {"sku": k[0], "country": k[1], "price": price, "rev": round(rev, 2), "uv": int(uv),
+        rec = {"sku": k[0], "country": k[1], "stage": k[2], "price": price,
+               "rev": round(rev, 2), "uv": int(uv),
                "base_rev": round(b_rev, 2), "base_uv": round(b_uv, 1)}
         # 金额维度
         if rev >= MIN_REV:
@@ -120,27 +144,37 @@ def scan(SRC, target, known_bad):
         if uv >= MIN_UV and b_uv > 0 and uv / b_uv >= UV_MULT:
             hits.append(dict(rec, mult=round(rev / b_rev, 1) if b_rev else None,
                              uv_mult=round(uv / b_uv, 1), kind="单数放大"))
-    hits.sort(key=lambda h: -(h["rev"] - h["base_rev"]))
+    # 首订排前面:新攻击要立即响应,续订只是存量回声
+    _ord = {"首订": 0, "非订阅": 1, "全部": 1, "续订": 2}
+    hits.sort(key=lambda h: (_ord.get(h["stage"], 1), -(h["rev"] - h["base_rev"])))
     # 档位级(跨国家汇总):整体放量但分摊到各国都不过阈值的情况
     sb = collections.defaultdict(lambda: [0.0, 0.0])
     for d in base_days:
         for x in SRC[d]:
-            sb[x["sku"]][0] += x["rev"] / len(base_days); sb[x["sku"]][1] += x["uv"] / len(base_days)
+            k = (x["sku"], x.get("stage", "全部"))
+            sb[k][0] += x["rev"] / len(base_days); sb[k][1] += x["uv"] / len(base_days)
     sc = collections.defaultdict(lambda: [0.0, 0.0, set()])
     for x in SRC[target]:
-        sc[x["sku"]][0] += x["rev"]; sc[x["sku"]][1] += x["uv"]; sc[x["sku"]][2].add(x["country"])
+        k = (x["sku"], x.get("stage", "全部"))
+        sc[k][0] += x["rev"]; sc[k][1] += x["uv"]; sc[k][2].add(x["country"])
     sku_hits = []
-    for s_, (rev, uv, ctys) in sc.items():
-        b_rev, b_uv = sb.get(s_, [0.0, 0.0])
+    for (s_, st_), (rev, uv, ctys) in sc.items():
+        b_rev, b_uv = sb.get((s_, st_), [0.0, 0.0])
         if uv >= SKU_MIN_UV and b_uv > 0 and uv / b_uv >= SKU_MULT:
-            sku_hits.append({"sku": s_, "uv": int(uv), "rev": round(rev, 2),
+            sku_hits.append({"sku": s_, "stage": st_, "uv": int(uv), "rev": round(rev, 2),
                              "base_uv": round(b_uv, 1), "base_rev": round(b_rev, 2),
                              "uv_mult": round(uv / b_uv, 1), "countries": len(ctys)})
     sku_hits.sort(key=lambda h: -h["uv_mult"])
     day_rev = sum(x["rev"] for x in SRC[target])
+    anom = lambda hs: round(sum(h["rev"] - h["base_rev"] for h in hs), 2)
+    new_hits = [h for h in hits if h["stage"] != "续订"]
     return {"date": target, "base_window": "%s~%s" % (base_days[0], base_days[-1]),
             "day_rev": round(day_rev, 2), "n": len(hits),
-            "anom_rev": round(sum(h["rev"] - h["base_rev"] for h in hits), 2),
+            "anom_rev": anom(hits),
+            # 分阶段:新增攻击(首订/非订阅)与存量回声(续订)风险含义不同,分开计量
+            "n_new": len(new_hits), "anom_rev_new": anom(new_hits),
+            "n_renew": len(hits) - len(new_hits),
+            "anom_rev_renew": anom([h for h in hits if h["stage"] == "续订"]),
             "hits": hits, "sku_hits": sku_hits}
 
 def main():
@@ -161,19 +195,32 @@ def main():
         r = scan(SRC, t, known_bad)
         if r: out.append(r)
     for r in out:
-        flag = "🔴 触发" if r["n"] else "✅ 正常"
-        print("\n%s %s  当日收入 $%s  异常单元格 %d 个  异常金额 $%s (%.1f%%)  基线 %s" % (
-            flag, r["date"], format(r["day_rev"], ","), r["n"], format(r["anom_rev"], ","),
-            r["anom_rev"] / r["day_rev"] * 100 if r["day_rev"] else 0, r["base_window"]))
-        for h in r["hits"][:15]:
-            m = "新增(基线0)" if h["mult"] is None else "%.0fx" % h["mult"]
-            print("   %-24s %-12s 价%-6s %5d单 $%9.2f  基线 %.1f单/$%.2f  %s" % (
-                h["sku"][:24], h["country"][:12], h["price"], h["uv"], h["rev"], h["base_uv"], h["base_rev"], m))
-        if r["n"] > 15: print("   ...另有 %d 个" % (r["n"] - 15))
+        if r["anom_rev_new"] >= NEW_ALERT_REV or r["n_new"] >= NEW_ALERT_N:
+            flag = "🔴 新增攻击"
+        elif r["n_new"] or r["n_renew"]:
+            flag = "🟡 偏高(新增量小/以续订为主)"
+        else:
+            flag = "✅ 正常"
+        pct = lambda v: v / r["day_rev"] * 100 if r["day_rev"] else 0
+        print("\n%s %s  当日收入 $%s  基线 %s" % (
+            flag, r["date"], format(r["day_rev"], ","), r["base_window"]))
+        print("   新增(首订/一次性): %d 个单元格  $%s (%.1f%%)   |   续订回声: %d 个  $%s (%.1f%%)" % (
+            r["n_new"], format(r["anom_rev_new"], ","), pct(r["anom_rev_new"]),
+            r["n_renew"], format(r["anom_rev_renew"], ","), pct(r["anom_rev_renew"])))
+        for st in ("首订", "非订阅", "全部", "续订"):
+            sub = [h for h in r["hits"] if h["stage"] == st]
+            if not sub: continue
+            print("   -- %s --" % st)
+            for h in sub[:12]:
+                m = "新增(基线0)" if h["mult"] is None else "%.0fx" % h["mult"]
+                print("   %-22s %-10s 价%-6s %5d单 $%9.2f  基线 %.1f单/$%.2f  %s" % (
+                    h["sku"][:22], h["country"][:10], h["price"], h["uv"], h["rev"],
+                    h["base_uv"], h["base_rev"], m))
+            if len(sub) > 12: print("      ...另有 %d 个" % (len(sub) - 12))
         for sh in r.get("sku_hits", []):
-            print("   [档位级] %-22s %5d单 $%9.2f  基线 %.1f单/$%.2f  单数 %.1fx  %d国" % (
-                sh["sku"][:22], sh["uv"], sh["rev"], sh["base_uv"], sh["base_rev"],
-                sh["uv_mult"], sh["countries"]))
+            print("   [档位级·%s] %-20s %5d单 $%9.2f  基线 %.1f单/$%.2f  单数 %.1fx  %d国" % (
+                sh.get("stage", "全部"), sh["sku"][:20], sh["uv"], sh["rev"],
+                sh["base_uv"], sh["base_rev"], sh["uv_mult"], sh["countries"]))
     log.setdefault("_confirmed_bad", sorted(known_bad))
     for r in out: log[r["date"]] = r
     json.dump(log, open(LOG, "w"), ensure_ascii=False, indent=1)
