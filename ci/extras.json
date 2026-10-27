@@ -449,6 +449,12 @@
   "ret1": null,
   "renew1": null
  },
+ "2026-10-23": {
+  "fail_rate": 5.11,
+  "cancel_rate": 75.49,
+  "ret1": 9.22,
+  "renew1": null
+ },
  "2026-10-24": {
   "fail_rate": 5.67,
   "cancel_rate": 74.6,
