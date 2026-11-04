@@ -29,12 +29,19 @@ _ALIAS={"官网监控明细数据":["官网监控明细数据","官网监控明�
         "SEO监控明细数据":["SEO监控明细数据","SEO监控明细"],
         "交叉表3":["交叉表3","档位支付明细","SKU交叉表"]}
 _POS={"官网监控明细数据":0,"交叉表1":1,"SEO监控明细数据":2,"交叉表3":3}
+_CLAIMED={a for v in _ALIAS.values() for a in v}
 def sh(name):
     for a in _ALIAS.get(name,[name]):
         if a in nb.sheetnames: return nb[a]
     i=_POS.get(name)
     if i is not None and i < len(nb.sheetnames):
-        print("  [warn] 未找到表名 %s,按位置取第%d个: %s"%(name,i+1,nb.sheetnames[i]))
+        # 位置兜底只在该位置的表「不属于其它别名组」时才可信。
+        # 2026-11-04 BI 删掉了 SEO监控明细数据,只剩 3 个表,按位置取会拿到
+        # 档位支付明细(索引同为 2),静默把 SKU 数据写进收入明细。
+        nm=nb.sheetnames[i]
+        if nm in _CLAIMED:
+            raise KeyError("%s 缺失(位置第%d个是 %s,属于其它表,不兜底)"%(name,i+1,nm))
+        print("  [warn] 未找到表名 %s,按位置取第%d个: %s"%(name,i+1,nm))
         return nb.worksheets[i]
     raise KeyError(name)
 
@@ -224,6 +231,11 @@ for r in _x3[1:]:
 out.save(f"{D}/SKU交叉表.xlsx"); print("SKU交叉表 (界<%s): 保留%d + 新增%d(仅13策略国)"%(cut,kept,add))
 
 # ---------- 4) 收入明细.xlsx (引流App=SEO监控明细口径; 合并历史) ----------
+try:
+    sh("SEO监控明细数据")
+except KeyError as _e:
+    print("  [warn] 本次导出无 SEO监控明细数据(%s),收入明细·引流App 保持原样不更新"%_e)
+    raise SystemExit(0)
 cut=newmin("SEO监控明细数据",3)
 cols=["维度1","维度2","维度3","充值uv","金币充值uv","订阅uv","首订uv","续订uv","金币充值收入","订阅(续订)收入","首订收入","续订收入","总收入","广告收入"]
 out=openpyxl.Workbook(); w=out.active; w.title="收入明细"; w.append(cols); kept=0
